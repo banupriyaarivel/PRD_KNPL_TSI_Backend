@@ -1,0 +1,61 @@
+PROCEDURE "VolumeKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE puttyProductID NVARCHAR(4) := 'DC12';
+    DECLARE lyTodayDate NVARCHAR(10) := "GetTodayYesterday"(0, 0);
+    DECLARE lyYesterdayDate NVARCHAR(10) := "GetTodayYesterday"(0, 1);
+    DECLARE lyMtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 1);
+    DECLARE lyMtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 0);
+    DECLARE lyMtdStartDate NVARCHAR(10) := "GetMTD"(0, 1);
+    DECLARE lyMtdEndDate NVARCHAR(10) := "GetMTD"(0, 0);
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetYTD"(0, 1);
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetYTD"(0, 0);
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT 
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, lyTodayDate, lyTodayDate,  customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "LY-Today",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, lyYesterdayDate, lyYesterdayDate,  customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "LY-Yesterday",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, lyMtdTillStartDate, lyMtdTillEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "LY-MTD*",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, lyMtdStartDate, lyMtdEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "LY-MTD",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, lyYtdStartDate, lyYtdEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "LY-YTD",
+
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, todayDate, todayDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "CY-Today",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "CY-Yesterday",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "CY-MTD*",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "CY-MTD",
+    (
+        SELECT "VolumeKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, customerCode, customerName, puttyProductID) FROM "DUMMY"
+    ) "CY-YTD"
+    FROM "DUMMY";
+END

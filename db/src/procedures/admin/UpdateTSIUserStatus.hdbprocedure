@@ -1,0 +1,28 @@
+PROCEDURE "UpdateTSIUserStatus" (email NVARCHAR(255), isActivated INTEGER)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE cnt INTEGER := 0;
+    DECLARE userId INTEGER := 0;
+    DECLARE upperEmail NVARCHAR(255) := UPPER(:email);
+
+    SELECT TOP 1 "ID" INTO userId DEFAULT NULL FROM "USER" 
+    WHERE "IS_ARCHIVED" = 0 AND UPPER("EMAIL") = :upperEmail;
+
+    IF :userId IS NULL THEN
+        SELECT 'USER_NOT_FOUND' AS "OPERATION_STATUS" FROM DUMMY;
+    ELSE
+        SELECT COUNT("ID") INTO cnt FROM "USER" 
+        WHERE "ID" = :userId AND "IS_ACTIVATED" = :isActivated;
+
+        IF cnt = 0 THEN
+            UPDATE "USER" SET "IS_ACTIVATED" = :isActivated, "UPDATED_AT" = CURRENT_UTCTIMESTAMP 
+            WHERE UPPER("EMAIL") = :upperEmail;
+            COMMIT;
+
+            SELECT 'USER_STATUS_UPDATED' AS "OPERATION_STATUS" FROM DUMMY;
+        ELSE 
+            SELECT 'USER_STATUS_ALREADY_UPDATED' AS "OPERATION_STATUS" FROM DUMMY;
+        END IF;        
+    END IF;
+END;

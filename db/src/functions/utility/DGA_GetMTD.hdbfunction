@@ -1,0 +1,16 @@
+FUNCTION "DGA_GetMTD"(isCY INTEGER, isStartDate INTEGER)
+    RETURNS result NVARCHAR(20)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := CURRENT_DATE;
+    DECLARE dateCheck NVARCHAR(10) := '';
+    DECLARE yearVal INTEGER := YEAR(currentDateVal);
+
+    IF isStartDate = 1 THEN
+        result := TO_NVARCHAR(currentDateVal, 'YYYYMM') || '01';
+        result := TO_NVARCHAR(result, 'YYYY-MM-DD');
+    ELSE
+        result := TO_NVARCHAR(currentDateVal, 'YYYY-MM-DD');
+    END IF;        
+END;

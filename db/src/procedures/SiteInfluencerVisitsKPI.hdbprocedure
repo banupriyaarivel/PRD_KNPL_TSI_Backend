@@ -1,0 +1,73 @@
+PROCEDURE "SiteInfluencerVisitsKPI"(salesGroup NVARCHAR(6500))
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT 
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                yesterdayDate,
+                yesterdayDate,
+                false
+            ) FROM "DUMMY"
+        ) "Total-Yesterday",
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                mtdTillStartDate,
+                mtdTillEndDate,
+                false
+            ) FROM "DUMMY"
+        ) "Total-MTD*",
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                mtdStartDate,
+                mtdEndDate,
+                false
+            ) FROM "DUMMY"
+        ) "Total-MTD",
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                ytdStartDate,
+                ytdEndDate,
+                false
+            ) FROM "DUMMY"
+        ) "Total-YTD",
+
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                mtdTillStartDate,
+                mtdTillEndDate,
+                true
+            ) FROM "DUMMY"
+        ) "Unique-MTD*",
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                mtdStartDate,
+                mtdEndDate,
+                true
+            ) FROM "DUMMY"
+        ) "Unique-MTD",
+        (
+            SELECT "SiteInfluencerVisitsKPIHelper"(
+                salesGroup,
+                ytdStartDate,
+                ytdEndDate,
+                true
+            ) FROM "DUMMY"
+        ) "Unique-YTD"
+    FROM "DUMMY";
+END

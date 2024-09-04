@@ -1,0 +1,264 @@
+@authToken = eyJhbGciOiJSUzI1NiIsImprdSI6Imh0dHBzOi8va25wbC1xYXMtcHJvamVjdHMuYXV0aGVudGljYXRpb24uYXAxMS5oYW5hLm9uZGVtYW5kLmNvbS90b2tlbl9rZXlzIiwia2lkIjoiZGVmYXVsdC1qd3Qta2V5LTE1Mjg0NzQwODQiLCJ0eXAiOiJKV1QiLCJqaWQiOiAiMDdVa1dPRmxSanVsa0FDL2EzRmsxUEZ2YW1hSEhkRzNGeUdISkc2RDkvWT0ifQ.eyJqdGkiOiI3MzY1ZDU1YzUzMTQ0ZmExODkwYjc2Yjk4NGZhYmY0ZiIsImV4dF9hdHRyIjp7ImVuaGFuY2VyIjoiWFNVQUEiLCJzdWJhY2NvdW50aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJ6ZG4iOiJrbnBsLXFhcy1wcm9qZWN0cyJ9LCJzdWIiOiJzYi1UU0khdDg1NCIsImF1dGhvcml0aWVzIjpbInVhYS5yZXNvdXJjZSJdLCJzY29wZSI6WyJ1YWEucmVzb3VyY2UiXSwiY2xpZW50X2lkIjoic2ItVFNJIXQ4NTQiLCJjaWQiOiJzYi1UU0khdDg1NCIsImF6cCI6InNiLVRTSSF0ODU0IiwiZ3JhbnRfdHlwZSI6ImNsaWVudF9jcmVkZW50aWFscyIsInJldl9zaWciOiJlMTk1MDJkOSIsImlhdCI6MTcyNDc1MDM3NywiZXhwIjoxNzI0NzkzNTc3LCJpc3MiOiJodHRwczovL2tucGwtcWFzLXByb2plY3RzLmF1dGhlbnRpY2F0aW9uLmFwMTEuaGFuYS5vbmRlbWFuZC5jb20vb2F1dGgvdG9rZW4iLCJ6aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJhdWQiOlsidWFhIiwic2ItVFNJIXQ4NTQiXX0.I3P9WLUgpZWtt_BKKJafhV-SwpDugfMLEC928wFOJHePm7gdGLfgMYrlWUsa2KiLT5A_1p4YN4awIccEu56uJKFnA0GrVIwDUTFYSGoJRY2YTK_94fne8puu5KrZ2Zhh_PklwcIXXpmP58czneVLIj6Dgzg1s781eG2_OaRW4R-IHyIYC2iIjnUk_PfLT8UGkbl01X7CBOmR2HpZAVTV0grgDJjWZQ73dAnMUE3VJr1btm_oRUpEr-ICwWcItp3TYEqEdQQBNZ4Ccbix5kj3sFV5vGhA25tWWe7QEZgYD9TVBwslQ1-jevxxdwBp8ORJFIvR-SQxv0eXc60-v_NMiQ
+
+###
+
+POST http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='314'&kpiType='PRODUCT'&columnHeader='CY'&rowHeader='Today'&townName=''&customerCode=''&customerName=''&productCategory='DC03'&productGroup='NAE'&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0} HTTP/1.1
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getCustomerValueKPIs?salesGroup='314'&customerCode=''&customerName=''} HTTP/1.1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4006/v2/tsi/getProductKPIs?salesGroup='314'&productCategory=''&productGroup=''} HTTP/1.1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getDGADistrictsList?salesGroup=314} HTTP/1.1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+POST http://localhost:4004/v2/tsiadmin/updateTSIUserStatus?email=SURAJ.galande@extentia.com&isActivated=1} HTTP/1.1
+Content-Type: application/json
+
+###
+
+POST http://localhost:4004/v2/tsiadmin/getTSIUserList
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "searchText": "","salesGroup": [],"sortOrder": "ASC","sortColumn": "FIRST_NAME","topRec": 2,"skipRec": 0, "roleId": 1
+}
+
+###
+
+GET http://localhost:4004/v2/tsiadmin/getMasterRolesList
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getIncentiveKPIs?salesGroup='314'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getIncentiveCircularDetails
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getAllCustomerListKPI?salesGroup='314'&customerCode=''&customerName=''&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getCustomerDetails?customerCode='0000182005'&dateType='CUSTOM'&startDate='2023-06-05'&endDate='2023-06-05'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getUserProfile?email=suraj.galande@extentia.com&appVersion=1.8
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getASMUserList?searchText=''
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getSalesOfficesByASMRSMList?searchText='314'&sortOrder='ASC'&sortColumn='SALES_GROUP'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+###
+
+GET http://localhost:4004/v2/tsi/getTSIUsersBySalesOfficeList?salesGroup='533,020,019,022'&searchText=''&sortOrder='ASC'&sortColumn='SALES_GROUP'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+###
+   
+GET http://localhost:4004/v2/tsi/getOSODKPIs?salesGroup='27T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImprdSI6Imh0dHBzOi8va25wbC1xYXMtcHJvamVjdHMuYXV0aGVudGljYXRpb24uYXAxMS5oYW5hLm9uZGVtYW5kLmNvbS90b2tlbl9rZXlzIiwia2lkIjoiZGVmYXVsdC1qd3Qta2V5LTE1Mjg0NzQwODQiLCJ0eXAiOiJKV1QiLCJqaWQiOiAiRE5sZzRyYUs2TE5kcU01NWxJYlk2dm90S0tpQSt4ZmxEVnlWbk1WLzJiaz0ifQ.eyJqdGkiOiI0ZjkwZjlhZDZkYTk0NzE3OTE4NTI5ZDMxYTZiMmZhNiIsImV4dF9hdHRyIjp7ImVuaGFuY2VyIjoiWFNVQUEiLCJzdWJhY2NvdW50aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJ6ZG4iOiJrbnBsLXFhcy1wcm9qZWN0cyJ9LCJzdWIiOiJzYi1uYS0wNGM0MDlkZi00NmY1LTRkODEtOTMzYi02NDU3YmFlNzg1NjUhdDg1NCIsImF1dGhvcml0aWVzIjpbInVhYS5yZXNvdXJjZSJdLCJzY29wZSI6WyJ1YWEucmVzb3VyY2UiXSwiY2xpZW50X2lkIjoic2ItbmEtMDRjNDA5ZGYtNDZmNS00ZDgxLTkzM2ItNjQ1N2JhZTc4NTY1IXQ4NTQiLCJjaWQiOiJzYi1uYS0wNGM0MDlkZi00NmY1LTRkODEtOTMzYi02NDU3YmFlNzg1NjUhdDg1NCIsImF6cCI6InNiLW5hLTA0YzQwOWRmLTQ2ZjUtNGQ4MS05MzNiLTY0NTdiYWU3ODU2NSF0ODU0IiwiZ3JhbnRfdHlwZSI6ImNsaWVudF9jcmVkZW50aWFscyIsInJldl9zaWciOiI2ZDA5Yjc1NSIsImlhdCI6MTcyMDUwODUyNCwiZXhwIjoxNzIwNTUxNzI0LCJpc3MiOiJodHRwczovL2tucGwtcWFzLXByb2plY3RzLmF1dGhlbnRpY2F0aW9uLmFwMTEuaGFuYS5vbmRlbWFuZC5jb20vb2F1dGgvdG9rZW4iLCJ6aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJhdWQiOlsidWFhIiwic2ItbmEtMDRjNDA5ZGYtNDZmNS00ZDgxLTkzM2ItNjQ1N2JhZTc4NTY1IXQ4NTQiXX0.njLDjQNSbjR9yRB7XRSlm4R7-iXIpl9Pbcy_OWSwpR5dKteiX_z__sb4hF4e0DEOW30RRV4tefq0iHTSni58oudDUdCMjhYg44F23eL-sSI9MYSzijYDPQ5lVQ2MlMqAhczf_zVxCe2C0wZatUjJoGp0syjWxJELsHKmAxTmlUFVp5nI45BC7xZFTGFdMb2zNUQnUvTItRo508n70DmSvUwS124OBx7Idyl0WsgnSIwgexc0ngRxMbiGEAlsJtahTPR9fm5E5bw9wPt7qcBWE-z4rkFRxYQi9zFM58Aq5LTYN_B8WkUGaMrA-cbvJxaZbzbeNRvZj5XGos2q0wnFAA
+Content-Type: application/json 
+# tsi/getOSODKPIs?salesGroup='27T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'
+
+###
+GET http://localhost:4004/v2/tsi/getUpcomingODKPIs?salesGroup='27T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImprdSI6Imh0dHBzOi8va25wbC1xYXMtcHJvamVjdHMuYXV0aGVudGljYXRpb24uYXAxMS5oYW5hLm9uZGVtYW5kLmNvbS90b2tlbl9rZXlzIiwia2lkIjoiZGVmYXVsdC1qd3Qta2V5LTE1Mjg0NzQwODQiLCJ0eXAiOiJKV1QiLCJqaWQiOiAiRE5sZzRyYUs2TE5kcU01NWxJYlk2dm90S0tpQSt4ZmxEVnlWbk1WLzJiaz0ifQ.eyJqdGkiOiI0ZjkwZjlhZDZkYTk0NzE3OTE4NTI5ZDMxYTZiMmZhNiIsImV4dF9hdHRyIjp7ImVuaGFuY2VyIjoiWFNVQUEiLCJzdWJhY2NvdW50aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJ6ZG4iOiJrbnBsLXFhcy1wcm9qZWN0cyJ9LCJzdWIiOiJzYi1uYS0wNGM0MDlkZi00NmY1LTRkODEtOTMzYi02NDU3YmFlNzg1NjUhdDg1NCIsImF1dGhvcml0aWVzIjpbInVhYS5yZXNvdXJjZSJdLCJzY29wZSI6WyJ1YWEucmVzb3VyY2UiXSwiY2xpZW50X2lkIjoic2ItbmEtMDRjNDA5ZGYtNDZmNS00ZDgxLTkzM2ItNjQ1N2JhZTc4NTY1IXQ4NTQiLCJjaWQiOiJzYi1uYS0wNGM0MDlkZi00NmY1LTRkODEtOTMzYi02NDU3YmFlNzg1NjUhdDg1NCIsImF6cCI6InNiLW5hLTA0YzQwOWRmLTQ2ZjUtNGQ4MS05MzNiLTY0NTdiYWU3ODU2NSF0ODU0IiwiZ3JhbnRfdHlwZSI6ImNsaWVudF9jcmVkZW50aWFscyIsInJldl9zaWciOiI2ZDA5Yjc1NSIsImlhdCI6MTcyMDUwODUyNCwiZXhwIjoxNzIwNTUxNzI0LCJpc3MiOiJodHRwczovL2tucGwtcWFzLXByb2plY3RzLmF1dGhlbnRpY2F0aW9uLmFwMTEuaGFuYS5vbmRlbWFuZC5jb20vb2F1dGgvdG9rZW4iLCJ6aWQiOiI5MTZmYmIyMi0wOWI5LTRmOGEtYTU4Zi0zM2IyNzU3ZWIyODMiLCJhdWQiOlsidWFhIiwic2ItbmEtMDRjNDA5ZGYtNDZmNS00ZDgxLTkzM2ItNjQ1N2JhZTc4NTY1IXQ4NTQiXX0.njLDjQNSbjR9yRB7XRSlm4R7-iXIpl9Pbcy_OWSwpR5dKteiX_z__sb4hF4e0DEOW30RRV4tefq0iHTSni58oudDUdCMjhYg44F23eL-sSI9MYSzijYDPQ5lVQ2MlMqAhczf_zVxCe2C0wZatUjJoGp0syjWxJELsHKmAxTmlUFVp5nI45BC7xZFTGFdMb2zNUQnUvTItRo508n70DmSvUwS124OBx7Idyl0WsgnSIwgexc0ngRxMbiGEAlsJtahTPR9fm5E5bw9wPt7qcBWE-z4rkFRxYQi9zFM58Aq5LTYN_B8WkUGaMrA-cbvJxaZbzbeNRvZj5XGos2q0wnFAA
+Content-Type: application/json 
+###
+ 
+POST http://localhost:4004/v2/tsi/getCustomerODHLKPIs?salesGroup='T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'&kpiType='UPCOMING_OD'&columnHeader='CY'&rowHeader='Today'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+POST http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,256'&kpiType='VOLUME'&columnHeader='LY'&rowHeader='MTD'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+UPCOMING_ODGET http://localhost:4004/v2/tsi/getOverallVisitsKPIs?salesGroup='514'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+GET http://localhost:4004/v2/tsi/getCustomerVisitsKPIs?salesGroup='514'&customerCode=''&customerName=''
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getInfluencerLoyaltyParticipantKPI?salesGroup='533,020,019,022'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getDGADealerLeadCounts?salesGroup='314'
+Authorization: Bearer {{authToken}}
+Content-Type: application/jsonF
+
+###
+
+GET http://localhost:4004/v2/tsi/getDGATotalMRValue?salesGroup='314'&customerCode='0000137206,0000189502'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+GET http://localhost:4004/v2/tsi/getDGATotalMRVolume?salesGroup='314'&customerCode='0000137206,0000189502'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getProductKPIs?salesGroup='533,020,019,022'&productCategory='DC46'&productGroup='CARDEA'
+
+
+
+https://knpl-qas-projects-tss-com-knpl-tsi.cfapps.ap11.hana.ondemand.com/com.knpl.tsi/getOSODKPIs?salesGroup='T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'
+
+
+
+
+GET http://localhost:4004/v2/tsi/getDepotByASMList?searchText=''&sortOrder='ASC'&sortColumn='DEPOT'&topRec=10&skipRec=0
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+
+
+
+
+
+###
+GET http://localhost:4004/tsi
+
+###
+GET http://localhost:4004/v2/odata/v4/tsi/$metadata
+
+###
+GET http://localhost:4004/v2/tsi/$metadata
+
+
+###   tsiadmin requires access
+GET http://localhost:4004/tsiadmin
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+###
+GET http://localhost:4004/tsiadmin/$metadata
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getUserProfile?email=jagjotsinghbakshi@nerolac.com&appVersion='1.7'
+accept:                   application/json
+accept-encoding:          gzip
+accept-language:          en-US, en;q=0.9
+connection:               Keep-Alive
+cookie:                   JSESSIONID=s%3A3ntqtnA6qq4FwF13XnZYd-1I6hHPAJ9q.hHrgJW9vKC5TuDHWSsDPuNHBn4aMQmTR0p9PvYaciuc; __VCAP_ID__=dbb25100-cfe7-4e90-46da-6d90
+dataserviceversion:       2.0
+host:                     knpl-qas-projects-tss-com-knpl-tsi.cfapps.ap11.hana.ondemand.com
+maxdataserviceversion:    2.0
+sap-passport:             2A54482A0300E60000534150435053444B464F524144522D342E302E38000000000000000000000000000064756D6D79000000000000000000000000000000000000000000000000000000485454505F5265717565737400000000000000000000000000000000000000000000000000000000000B534150435053444B464F524144522D342E302E38000000000000000000000000433732463939344538454341343332324143324345343045423443453642303700000000089CE9AFF746844DEE90667D73907FF9E80000000000000000000000000000000000000000000000002A54482A
+user-agent:               okhttp/4.8.0
+x-app-version:            1.7
+x-csrf-token:             Fetch
+x-smp-appid:              com.knpl.tsi
+x-smp-deviceid:           d40bb7768202f422
+x-smp-sdk-version:        SAPCPSDKFORAND-3.0.1
+
+
+###
+
+get http://localhost:4004/tsi/getUserProfile(email='jagjotsinghbakshi@nerolac.com',appVersion='1.7')
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+x-csrf-token:             Fetch
+x-smp-appid:              com.knpl.tsi
+x-smp-deviceid:           d40bb7768202f422
+x-smp-sdk-version:        SAPCPSDKFORAND-3.0.1
+
+###
+
+get http://localhost:4004/tsi/
+
+
+
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getSalesValueKPIs?salesGroup='068'&customerCode=''&customerName=''} HTTP/1.1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getSalesOfficesByASMRSMList?searchText=''
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getDepotByRSM?searchText=''
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+###
+
+GET http://localhost:4004/v2/tsi/getProductCategoryGroupList?salesGroup='T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+
+CALL "TSI_HDI_TSI_DB_DEPLOYER_1"."OSODKPI"(
+	SALESGROUP => 'T03,S53,532,281,541,252,356,515,544,556,D09,068,265,072,069,551,518,493,455,322,623,366,402,073,266,545,354,253,314,420,479,529,558,075,419,254,401,320,557,415,255,189,188,330,070,576,321,256'/*<NVARCHAR(6500)>*/,
+	CUSTOMERCODE => ''/*<NVARCHAR(500000)>*/,
+	CUSTOMERNAME => ''/*<NVARCHAR(255)>*/
+)  

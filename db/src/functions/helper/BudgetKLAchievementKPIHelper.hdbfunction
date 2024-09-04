@@ -1,0 +1,43 @@
+FUNCTION "BudgetKLAchievementKPIHelper" (
+    salesGroup NVARCHAR(6500),
+    kpiType NVARCHAR(3),
+    productCategory NVARCHAR(255),
+    productGroup NVARCHAR(255)
+)
+    RETURNS result DOUBLE
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE tempResult DOUBLE := 0.0;
+    DECLARE currentDateVal DATE := TO_DATE("GetTodayYesterday"(1, 0));
+    DECLARE mtdString NVARCHAR(10) := TO_NVARCHAR(currentDateVal, 'YYYYMM');
+    DECLARE startDateStr NVARCHAR(10);
+
+    IF kpiType = 'MTD' THEN
+        startDateStr := mtdString;
+    ELSE
+        IF MONTH(currentDateVal) < 4 THEN
+            startDateStr := (YEAR(currentDateVal) - 1) || '04';
+        ELSE
+            startDateStr := YEAR(currentDateVal) || '04';
+        END IF;
+    END IF;
+
+    IF productCategory IS NULL AND productGroup IS NULL THEN
+        SELECT SUM("/BIC/ZBUG_VOL1") INTO tempResult FROM "/BIC/AZADSO_BG12"
+        WHERE "SALES_GRP" IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+        AND "CALMONTH" BETWEEN startDateStr AND mtdString
+        AND "/BIC/ZPROD_CA" NOT IN ('PUTTY');
+    ELSE
+        SELECT SUM("/BIC/ZBUG_VOL1") INTO tempResult FROM "/BIC/AZADSO_BG12" 
+        WHERE "SALES_GRP" IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+        AND "CALMONTH" BETWEEN startDateStr AND mtdString
+        AND "/BIC/ZPROD_CA" = :productCategory AND "/BIC/ZNPG1" = :productGroup;
+    END IF;    
+
+    IF tempResult = 0 OR tempResult = '0.0' THEN
+        tempResult := NULL;    
+    END IF;
+
+    result := tempResult;
+END;

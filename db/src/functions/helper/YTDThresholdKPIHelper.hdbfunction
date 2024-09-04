@@ -1,0 +1,59 @@
+FUNCTION "YTDThresholdKPIHelper"(
+    salesGroup NVARCHAR(6500),
+    ytdStartDate NVARCHAR(10),
+    ytdEndDate NVARCHAR(10)
+)
+    RETURNS result INTEGER
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE monthVal INTEGER := MONTH(CURRENT_DATE);
+    DECLARE ytdThreshold INTEGER := 0; 
+    DECLARE startDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE endDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE last2MonthStartDate INTEGER := TO_NVARCHAR(ADD_MONTHS(CURRENT_DATE, -1), 'YYYYMM') || '01';
+    DECLARE last3MonthStartDate INTEGER := TO_NVARCHAR(ADD_MONTHS(CURRENT_DATE, -2), 'YYYYMM') || '01';
+    
+    IF monthVal = 4 THEN
+        ytdThreshold := 25000;
+    ELSE IF monthVal = 5 THEN
+        ytdThreshold := 50000;
+        startDate := last2MonthStartDate; --Last month + till today's date
+    ELSE
+        ytdThreshold := 75000;
+        startDate := last3MonthStartDate; --Last to Last month + Last month + till today's date
+    END IF;
+    END IF;
+
+    SELECT COUNT(SID_0CUSTOMER) INTO result FROM (        
+        SELECT SID_0CUSTOMER, VAL FROM (
+            SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+            FROM "/BIC/FCC_NSALE" FCC_NSALE
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            ) 
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+            JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+            AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+            WHERE TO_DATE("SID_0CALDAY") BETWEEN startDate AND endDate
+            AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+            AND "SID_0CUSTOMER" IN (
+                SELECT SID_0CUSTOMER FROM (
+                    SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID 
+                    AND SSALES_GRP1.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                    AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    WHERE TO_DATE("SID_0CALDAY") BETWEEN ytdStartDate AND ytdEndDate
+                    AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                ) WHERE VAL > 0
+            )
+            GROUP BY "SID_0CUSTOMER"
+        ) WHERE VAL <= ytdThreshold
+    );
+END;

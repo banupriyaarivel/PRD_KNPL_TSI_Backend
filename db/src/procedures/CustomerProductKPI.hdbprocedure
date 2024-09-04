@@ -1,0 +1,83 @@
+PROCEDURE "CustomerProductKPI"(
+    salesGroup NVARCHAR(6500),
+    kpiType NVARCHAR(20),
+    customerCode NVARCHAR(500000),
+    productCategory NVARCHAR(2000),
+    productGroup NVARCHAR(500000)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+   DECLARE CY_TODAY DECIMAL := '0.0';
+   DECLARE LY_TODAY DECIMAL := '0.0';
+   DECLARE CY_YESTERDAY DECIMAL := '0.0';
+   DECLARE LY_YESTERDAY DECIMAL := '0.0';
+   DECLARE CY_MTD_TILL_Y DECIMAL := '0.0';
+   DECLARE LY_MTD_TILL_Y DECIMAL := '0.0';
+   DECLARE CY_MTD DECIMAL := '0.0';
+   DECLARE LY_MTD DECIMAL := '0.0';
+   DECLARE CY_YTD_TILL_Y DECIMAL := '0.0';
+   DECLARE LY_YTD_TILL_Y DECIMAL := '0.0';
+   DECLARE lyTodayDate NVARCHAR(10) := "GetTodayYesterday"(0, 0);
+   DECLARE lyYesterdayDate NVARCHAR(10) := "GetTodayYesterday"(0, 1);
+   DECLARE lyMtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 1);
+   DECLARE lyMtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 0);
+   DECLARE lyMtdStartDate NVARCHAR(10) := "GetMTD"(0, 1);
+   DECLARE lyMtdEndDate NVARCHAR(10) := "GetMTD"(0, 0);
+   DECLARE lyYtdTillStartDate NVARCHAR(10) := "GetYTDTillYesterday"(0, 1);
+   DECLARE lyYtdTillEndDate NVARCHAR(10) := "GetYTDTillYesterday"(0, 0);
+   DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+   DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+   DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+   DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+   DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+   DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+   DECLARE ytdTillStartDate NVARCHAR(10) := "GetYTDTillYesterday"(1, 1);
+   DECLARE ytdTillEndDate NVARCHAR(10) := "GetYTDTillYesterday"(1, 0);
+
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, lyTodayDate, lyTodayDate, kpiType, customerCode,productCategory, productGroup
+    )) INTO LY_TODAY;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, lyYesterdayDate, lyYesterdayDate, kpiType, customerCode,productCategory, productGroup
+    )) INTO LY_YESTERDAY;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, lyMtdTillStartDate, lyMtdTillEndDate, kpiType, customerCode,productCategory, productGroup
+    )) INTO LY_MTD_TILL_Y;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, lyMtdStartDate, lyMtdEndDate, kpiType, customerCode,productCategory, productGroup
+    )) INTO LY_MTD;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, lyYtdTillStartDate, lyYtdTillEndDate, kpiType, customerCode,productCategory, productGroup
+    )) INTO LY_YTD_TILL_Y;
+
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, todayDate, todayDate, kpiType, customerCode, productCategory, productGroup
+    )) INTO CY_TODAY;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, yesterdayDate, yesterdayDate, kpiType, customerCode, productCategory, productGroup
+    )) INTO CY_YESTERDAY;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, mtdTillStartDate, mtdTillEndDate, kpiType, customerCode, productCategory, productGroup
+    )) INTO CY_MTD_TILL_Y;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, mtdStartDate, mtdEndDate, kpiType, customerCode, productCategory, productGroup
+    )) INTO CY_MTD;
+    EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(
+       salesGroup, ytdTillStartDate, ytdTillEndDate, kpiType, customerCode, productCategory, productGroup
+    )) INTO CY_YTD_TILL_Y;
+   
+   SELECT 
+        LY_TODAY AS "LY-Today",
+        LY_YESTERDAY AS "LY-Yesterday",
+        LY_MTD_TILL_Y AS "LY-MTD*",
+        LY_MTD AS "LY-MTD",
+        LY_YTD_TILL_Y AS "LY-YTD*",
+        CY_TODAY AS "CY-Today",
+        CY_YESTERDAY AS "CY-Yesterday",
+        CY_MTD_TILL_Y AS "CY-MTD*",
+        CY_MTD AS "CY-MTD",
+        CY_YTD_TILL_Y AS "CY-YTD*" 
+   FROM DUMMY; 
+END;

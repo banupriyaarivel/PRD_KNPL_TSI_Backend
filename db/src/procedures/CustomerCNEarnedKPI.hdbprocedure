@@ -1,0 +1,76 @@
+PROCEDURE "CustomerCNEarnedKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+
+    DECLARE monthCMDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+    DECLARE monthStartDate NVARCHAR(10) := "GetMonthCM"(1, 1);
+    DECLARE monthEndDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+
+    IF customerCode IS NULL THEN
+        SELECT 
+            (
+                SELECT COUNT(CUSTOMER) FROM (
+                    SELECT DISTINCT ACO_SHCUS00."CUSTOMER", SUM("/BIC/ZNETWRC") as "CN_VALUE"
+                    FROM "/BIC/ACO_SHCUS00" ACO_SHCUS00                
+                    JOIN "/BI0/TCUSTOMER" TCUSTOMER ON TCUSTOMER."CUSTOMER" = ACO_SHCUS00."CUSTOMER"     
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER"
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+                    WHERE "CALMONTH" BETWEEN monthCMDate AND monthCMDate
+                    GROUP BY ACO_SHCUS00."CUSTOMER"
+                ) WHERE "CN_VALUE" > 0
+            ) "MTD*",
+            (
+                SELECT COUNT(CUSTOMER) FROM (
+                    SELECT DISTINCT ACO_SHCUS00."CUSTOMER", SUM("/BIC/ZNETWRC") as "CN_VALUE"
+                    FROM "/BIC/ACO_SHCUS00" ACO_SHCUS00                
+                    JOIN "/BI0/TCUSTOMER" TCUSTOMER ON TCUSTOMER."CUSTOMER" = ACO_SHCUS00."CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+                    WHERE "CALMONTH" BETWEEN monthStartDate AND monthEndDate
+                    GROUP BY ACO_SHCUS00."CUSTOMER"
+                ) WHERE "CN_VALUE" > 0
+            ) "YTD"
+        FROM "DUMMY";
+    ELSE
+        SELECT 
+            (
+                SELECT COUNT(CUSTOMER) FROM (
+                    SELECT DISTINCT ACO_SHCUS00."CUSTOMER", SUM("/BIC/ZNETWRC") as "CN_VALUE"
+                    FROM "/BIC/ACO_SHCUS00" ACO_SHCUS00                
+                    JOIN "/BI0/TCUSTOMER" TCUSTOMER ON TCUSTOMER."CUSTOMER" = ACO_SHCUS00."CUSTOMER" 
+                    AND TCUSTOMER."CUSTOMER" IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+                    )               
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER"
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+                    WHERE "CALMONTH" BETWEEN monthCMDate AND monthCMDate
+                    GROUP BY ACO_SHCUS00."CUSTOMER"
+                ) WHERE "CN_VALUE" > 0
+            ) "MTD*",
+            (
+                SELECT COUNT(CUSTOMER) FROM (
+                    SELECT DISTINCT ACO_SHCUS00."CUSTOMER", SUM("/BIC/ZNETWRC") as "CN_VALUE"
+                    FROM "/BIC/ACO_SHCUS00" ACO_SHCUS00                
+                    JOIN "/BI0/TCUSTOMER" TCUSTOMER ON TCUSTOMER."CUSTOMER" = ACO_SHCUS00."CUSTOMER" 
+                    AND TCUSTOMER."CUSTOMER" IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+                    )               
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+                    WHERE "CALMONTH" BETWEEN monthStartDate AND monthEndDate
+                    GROUP BY ACO_SHCUS00."CUSTOMER"
+                ) WHERE "CN_VALUE" > 0
+            ) "YTD"
+        FROM "DUMMY";
+    END IF;
+END

@@ -1,0 +1,88 @@
+PROCEDURE "DGA_InfluencerLeadsKPI"(
+    influencerID INTEGER
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE mtdStartDate NVARCHAR(10) := "DGA_GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "DGA_GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "DGA_GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "DGA_GetYTD"(1, 0);
+
+    SELECT 
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            mtdStartDate,
+            mtdEndDate,
+            'KNPL_TO_CONTRACTOR',
+            false
+        ) FROM "DUMMY"
+    ) "KNPL_MTD_GIVEN",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            mtdStartDate,
+            mtdEndDate,
+            'KNPL_TO_CONTRACTOR',
+            true
+        ) FROM "DUMMY"
+    ) "KNPL_MTD_CONVERTED",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            ytdStartDate,
+            ytdEndDate,
+            'KNPL_TO_CONTRACTOR',
+            false
+        ) FROM "DUMMY"
+    ) "KNPL_YTD_GIVEN",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            ytdStartDate,
+            ytdEndDate,
+            'KNPL_TO_CONTRACTOR',
+            true
+        ) FROM "DUMMY"
+    ) "KNPL_YTD_CONVERTED",
+
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            mtdStartDate,
+            mtdEndDate,
+            'CONTRACTOR_TO_KNPL',
+            false
+        ) FROM "DUMMY"
+    ) "CONTRACTOR_MTD_GIVEN",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            mtdStartDate,
+            mtdEndDate,
+            'CONTRACTOR_TO_KNPL',
+            true
+        ) FROM "DUMMY"
+    ) "CONTRACTOR_MTD_CONVERTED",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            ytdStartDate,
+            ytdEndDate,
+            'CONTRACTOR_TO_KNPL',
+            false
+        ) FROM "DUMMY"
+    ) "CONTRACTOR_YTD_GIVEN",
+    (
+        SELECT "DGA_InfluencerLeadsKPIHelper"(
+            influencerID,
+            ytdStartDate,
+            ytdEndDate,
+            'CONTRACTOR_TO_KNPL',
+            true
+        ) FROM "DUMMY"
+    ) "CONTRACTOR_YTD_CONVERTED"
+    FROM DUMMY;
+END;

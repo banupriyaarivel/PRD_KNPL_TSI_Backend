@@ -1,0 +1,23 @@
+FUNCTION "GetLYCY"(isStartDate INTEGER)
+    RETURNS result NVARCHAR(10)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := CURRENT_DATE;
+    DECLARE monthVal INTEGER := MONTH(currentDateVal);
+    DECLARE yearVal INTEGER := YEAR(currentDateVal);
+    DECLARE dateCheck NVARCHAR(10) := ''; 
+
+    IF isStartDate = 1 THEN
+        IF monthVal < 4 THEN
+            -- result := (yearVal - 2) || '0401';
+            result := '20200401';
+        ELSE
+            -- result := (yearVal - 1) || '0401';
+            result := '20210401';
+        END IF;
+    ELSE
+        -- result := TO_NVARCHAR(currentDateVal, 'YYYYMMDD');
+        result := '20210930';
+    END IF;
+END;

@@ -1,0 +1,51 @@
+PROCEDURE "CustomerFocusProduct"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+READS SQL DATA AS
+BEGIN
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, todayDate, todayDate, customerCode, customerName, 'VALUE') FROM "DUMMY"
+    ) "VAL-CY-Today",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, customerCode, customerName, 'VALUE') FROM "DUMMY"
+    ) "VAL-CY-Yesterday",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, customerCode, customerName, 'VALUE') FROM "DUMMY"
+    ) "VAL-CY-MTD*",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, customerCode, customerName, 'VALUE') FROM "DUMMY"
+    ) "VAL-CY-MTD",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, customerCode, customerName, 'VALUE') FROM "DUMMY"
+    ) "VAL-CY-YTD",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, todayDate, todayDate, customerCode, customerName, 'VOLUME') FROM "DUMMY"
+    ) "VOL-CY-Today",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, customerCode, customerName, 'VOLUME') FROM "DUMMY"
+    ) "VOL-CY-Yesterday",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, customerCode, customerName, 'VOLUME') FROM "DUMMY"
+    ) "VOL-CY-MTD*",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, customerCode, customerName, 'VOLUME') FROM "DUMMY"
+    ) "VOL-CY-MTD",
+    (
+        SELECT "CustomerFocusProductKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, customerCode, customerName, 'VOLUME') FROM "DUMMY"
+    ) "VOL-CY-YTD"
+    FROM "DUMMY";
+END

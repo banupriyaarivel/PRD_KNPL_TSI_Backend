@@ -1,0 +1,145 @@
+PROCEDURE "ProductKPI"(
+    salesGroup NVARCHAR(6500),
+    productCategory NVARCHAR(2000),
+    productGroup NVARCHAR(500000)
+)
+LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE BUDGET_MTD DECIMAL := '1.0';
+    DECLARE BUDGET_YTD DECIMAL := '1.0';
+    DECLARE LY_MTD_TILL DECIMAL := '0.0';
+    DECLARE LY_MTD DECIMAL := '0.0';
+    DECLARE LY_YTD DECIMAL := '0.0';
+    DECLARE CY_TODAY DECIMAL := '0.0';
+    DECLARE CY_YESTERDAY DECIMAL := '0.0';
+    DECLARE CY_MTD_TILL DECIMAL := '0.0';
+    DECLARE CY_MTD DECIMAL := '0.0';
+    DECLARE CY_YTD DECIMAL := '0.0';
+    DECLARE lyMtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 1);
+    DECLARE lyMtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 0);
+    DECLARE lyMtdStartDate NVARCHAR(10) := "GetMTD"(0, 1);
+    DECLARE lyMtdEndDate NVARCHAR(10) := "GetMTD"(0, 0);
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetYTD"(0, 1); 
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetYTD"(0, 0);
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    IF productCategory IS NULL AND productGroup IS NULL THEN 
+        DECLARE CURSOR FOCUS_PRODUCT_GROUP FOR
+        SELECT DISTINCT PMATERIAL."/BIC/CI_PRCTDC" AS "CATEGORY_CODE", TCI_PRCTDC."TXTSH" AS "CATEGORY",
+        PMATERIAL."/BIC/CI_PRGPDC" AS "GROUPVAL"  
+        FROM "/BI0/PMATERIAL" PMATERIAL
+        JOIN "/BIC/TCI_PRCTDC" TCI_PRCTDC ON TCI_PRCTDC."/BIC/CI_PRCTDC" = PMATERIAL."/BIC/CI_PRCTDC"
+        JOIN "/BIC/PCI_PRGPDC" PCI_PRGPDC ON PCI_PRGPDC."/BIC/CI_PRGPDC" = PMATERIAL."/BIC/CI_PRGPDC"
+        WHERE PMATERIAL."/BIC/CI_PRCTDC" IS NOT NULL AND PMATERIAL."/BIC/CI_PRCTDC" != ''
+        AND PMATERIAL."/BIC/CI_PRGPDC" IS NOT NULL AND PMATERIAL."/BIC/CI_PRGPDC" != ''
+        AND PMATERIAL."/BIC/ZPRDFLG" = 'Super Premium'
+        ORDER BY TCI_PRCTDC."TXTSH", PMATERIAL."/BIC/CI_PRGPDC";
+
+        FOR CUR_ROW AS FOCUS_PRODUCT_GROUP
+        DO
+            SELECT "BudgetKLAchievementKPIHelper"(salesGroup, 'MTD', CUR_ROW.CATEGORY, CUR_ROW.GROUPVAL) INTO BUDGET_MTD FROM "DUMMY";
+            SELECT "BudgetKLAchievementKPIHelper"(salesGroup, 'YTD', CUR_ROW.CATEGORY, CUR_ROW.GROUPVAL) INTO BUDGET_YTD FROM "DUMMY";        
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyMtdTillStartDate, lyMtdTillEndDate, 'VOLUME', NULL, CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_MTD_TILL;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyMtdStartDate, lyMtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_MTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyYtdStartDate, lyYtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_YTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, todayDate, todayDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_TODAY;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_YESTERDAY;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_MTD_TILL;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_MTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_YTD;
+
+            SELECT 
+            CUR_ROW.CATEGORY_CODE AS "CATEGORY_CODE",
+            CUR_ROW.CATEGORY AS "CATEGORY",
+            CUR_ROW.GROUPVAL AS "GROUP",
+            TO_DECIMAL(BUDGET_MTD, 1, 1) AS "BUDGET-MTD",
+            TO_DECIMAL(BUDGET_YTD, 1, 1) AS "BUDGET-YTD",
+            (
+                CASE WHEN BUDGET_MTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_MTD_TILL * 100 / BUDGET_MTD, 1, 1) END
+            ) AS "ACHIEVE-MTD*",
+            (
+                CASE WHEN BUDGET_MTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_MTD * 100 / BUDGET_MTD, 1, 1) END
+            ) AS "ACHIEVE-MTD",
+            (
+                CASE WHEN BUDGET_YTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_YTD * 100 / BUDGET_YTD, 1, 1) END
+            ) AS "ACHIEVE-YTD",
+            LY_MTD_TILL AS "LY-MTD*",
+            LY_MTD AS "LY-MTD",
+            LY_YTD AS "LY-YTD",
+            CY_TODAY AS "CY-Today",
+            CY_YESTERDAY AS "CY-Yesterday",
+            CY_MTD_TILL AS "CY-MTD*",
+            CY_MTD AS "CY-MTD",
+            CY_YTD AS "CY-YTD"
+            FROM DUMMY;
+        END FOR;
+    ELSE    
+        DECLARE CURSOR PRODUCT_GROUPS FOR
+        SELECT DISTINCT PMATERIAL."/BIC/CI_PRCTDC" AS "CATEGORY_CODE", TCI_PRCTDC."TXTSH" AS "CATEGORY",
+        PMATERIAL."/BIC/CI_PRGPDC" AS "GROUPVAL"  
+        FROM "/BI0/PMATERIAL" PMATERIAL
+        JOIN "/BIC/TCI_PRCTDC" TCI_PRCTDC ON TCI_PRCTDC."/BIC/CI_PRCTDC" = PMATERIAL."/BIC/CI_PRCTDC"
+        JOIN "/BIC/PCI_PRGPDC" PCI_PRGPDC ON PCI_PRGPDC."/BIC/CI_PRGPDC" = PMATERIAL."/BIC/CI_PRGPDC"
+        AND PCI_PRGPDC."/BIC/CI_PRGPDC" IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:productGroup)
+        )
+        WHERE PMATERIAL."/BIC/CI_PRCTDC" IS NOT NULL AND PMATERIAL."/BIC/CI_PRCTDC" != ''
+        AND PMATERIAL."/BIC/CI_PRGPDC" IS NOT NULL AND PMATERIAL."/BIC/CI_PRGPDC" != ''
+        AND PMATERIAL."/BIC/CI_PRCTDC"= :productCategory
+        ORDER BY TCI_PRCTDC."TXTSH", PMATERIAL."/BIC/CI_PRGPDC";
+
+        FOR CUR_ROW AS PRODUCT_GROUPS
+        DO
+            SELECT "BudgetKLAchievementKPIHelper"(salesGroup, 'MTD', CUR_ROW.CATEGORY, CUR_ROW.GROUPVAL) INTO BUDGET_MTD FROM "DUMMY";
+            SELECT "BudgetKLAchievementKPIHelper"(salesGroup, 'YTD', CUR_ROW.CATEGORY, CUR_ROW.GROUPVAL) INTO BUDGET_YTD FROM "DUMMY";        
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyMtdTillStartDate, lyMtdTillEndDate, 'VOLUME', NULL, CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_MTD_TILL;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyMtdStartDate, lyMtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_MTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, lyYtdStartDate, lyYtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO LY_YTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, todayDate, todayDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_TODAY;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_YESTERDAY;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_MTD_TILL;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_MTD;
+            EXECUTE IMMEDIATE ("CustomerProductKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, 'VOLUME', NULL,CUR_ROW.CATEGORY_CODE, CUR_ROW.GROUPVAL)) INTO CY_YTD;
+
+            SELECT 
+            CUR_ROW.CATEGORY_CODE AS "CATEGORY_CODE",
+            CUR_ROW.CATEGORY AS "CATEGORY",
+            CUR_ROW.GROUPVAL AS "GROUP",
+            TO_DECIMAL(BUDGET_MTD, 1, 1) AS "BUDGET-MTD",
+            TO_DECIMAL(BUDGET_YTD, 1, 1) AS "BUDGET-YTD",
+            (
+                CASE WHEN BUDGET_MTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_MTD_TILL * 100 / BUDGET_MTD, 1, 1) END
+            ) AS "ACHIEVE-MTD*",
+            (
+                CASE WHEN BUDGET_MTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_MTD * 100 / BUDGET_MTD, 1, 1) END
+            ) AS "ACHIEVE-MTD",
+            (
+                CASE WHEN BUDGET_YTD IS NULL THEN NULL 
+                ELSE TO_DECIMAL(CY_YTD * 100 / BUDGET_YTD, 1, 1) END
+            ) AS "ACHIEVE-YTD",
+            LY_MTD_TILL AS "LY-MTD*",
+            LY_MTD AS "LY-MTD",
+            LY_YTD AS "LY-YTD",
+            CY_TODAY AS "CY-Today",
+            CY_YESTERDAY AS "CY-Yesterday",
+            CY_MTD_TILL AS "CY-MTD*",
+            CY_MTD AS "CY-MTD",
+            CY_YTD AS "CY-YTD"
+            FROM DUMMY;
+        END FOR;
+    END IF;
+END

@@ -1,0 +1,82 @@
+PROCEDURE "UpcomingODKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+) 
+LANGUAGE SQLSCRIPT 
+SQL SECURITY INVOKER 
+READS SQL DATA 
+AS 
+BEGIN
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE tomorrowStartDate NVARCHAR(10) := "GetNextDays"(1, 'Tomorrow');
+    DECLARE tomorrowEndDate NVARCHAR(10) := "GetNextDays"(0, 'Tomorrow');
+    DECLARE next3DaysStartDate NVARCHAR(10) := "GetNextDays"(1, 'Next3Days');
+    DECLARE next3DaysEndDate NVARCHAR(10) := "GetNextDays"(0, 'Next3Days');
+    DECLARE next5DaysStartDate NVARCHAR(10) := "GetNextDays"(1, 'Next5Days');
+    DECLARE next5DaysEndDate NVARCHAR(10) := "GetNextDays"(0, 'Next5Days');
+    DECLARE next10DaysStartDate NVARCHAR(10) := "GetNextDays"(1, 'Next10Days');
+    DECLARE next10DaysEndDate NVARCHAR(10) := "GetNextDays"(0, 'Next10Days');
+
+    SELECT 
+    (
+        SELECT "UpcomingODHelper"(
+            salesGroup,
+            todayDate,
+            todayDate,
+            customerCode,
+            customerName,
+            'Today'
+        )
+        FROM "DUMMY"
+    ) AS "Today",
+
+    (
+        SELECT "UpcomingODHelper"(
+            salesGroup,
+            tomorrowStartDate,
+            tomorrowEndDate,
+            customerCode,
+            customerName,
+            'Tomorrow'
+        )
+        FROM "DUMMY"
+    ) AS "Tomorrow",
+
+    (
+        SELECT "UpcomingODHelper"(
+            salesGroup,
+            next3DaysStartDate,
+            next3DaysEndDate,
+            customerCode,
+            customerName,
+            'Next3Days'
+        )
+        FROM "DUMMY"
+    ) AS "Next3Days",
+
+    (
+        SELECT "UpcomingODHelper"(
+            salesGroup,
+            next5DaysStartDate,
+            next5DaysEndDate,
+            customerCode,
+            customerName,
+            'Next5Days'
+        )
+        FROM "DUMMY"
+    ) AS "Next5Days",
+
+    (
+        SELECT "UpcomingODHelper"(
+            salesGroup,
+            next10DaysStartDate,
+            next10DaysEndDate,
+            customerCode,
+            customerName,
+            'Next10Days'
+        )
+        FROM "DUMMY"
+    ) AS "Next10Days"
+    FROM "DUMMY";
+END

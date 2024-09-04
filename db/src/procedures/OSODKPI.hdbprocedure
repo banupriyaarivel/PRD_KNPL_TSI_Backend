@@ -1,0 +1,99 @@
+PROCEDURE "OSODKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE monthCEICMDate NVARCHAR(10) := "GetCEIMonthCM"();
+    DECLARE monthCMDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+    DECLARE next5DaysStartDate NVARCHAR(10) := "GetNext5Days"(1);
+    DECLARE next5DaysEndDate NVARCHAR(10) := "GetNext5Days"(0);
+
+    SELECT 
+        (
+            SELECT "SGCEIKPIHelper"(
+                salesGroup,
+                monthCEICMDate,
+                monthCEICMDate,
+                customerCode,
+                customerName,
+                'SGCEI'
+            ) FROM "DUMMY"
+        ) "SGCEI-MONTH-BEGINNING",
+        (
+            SELECT "OSKPIHelper"(
+                salesGroup, 
+                monthCMDate,
+                monthCMDate,
+                customerCode, 
+                customerName, 
+                'OS-MONTH-BEGINNING'
+            ) FROM "DUMMY"
+        ) "OS-MONTH-BEGINNING",
+        (
+            SELECT "OSKPIHelper"(
+                salesGroup, 
+                yesterdayDate,
+                yesterdayDate, 
+                customerCode, 
+                customerName, 
+                'OS-TILL-YESTERDAY'
+            ) FROM "DUMMY"                
+        ) "OS-TILL-YESTERDAY",
+        (
+            SELECT "OS60KPIHelper"(
+                salesGroup, 
+                monthCMDate,
+                monthCMDate,
+                customerCode, 
+                customerName, 
+                'OS>60-MONTH-BEGINNING'
+            ) FROM "DUMMY"                
+        ) "OS>60-MONTH-BEGINNING",
+        (
+            SELECT "OS60KPIHelper"(
+                salesGroup, 
+                yesterdayDate,
+                yesterdayDate,
+                customerCode, 
+                customerName, 
+                'OS>60-TILL-YESTERDAY'
+            ) FROM "DUMMY"   
+        ) "OS>60-TILL-YESTERDAY",
+        (
+            SELECT "ODKPIHelper"(
+                salesGroup, 
+                monthCMDate, 
+                monthCMDate, 
+                customerCode, 
+                customerName, 
+                'OD-MONTH-BEGINNING'
+            ) FROM "DUMMY"  
+        ) "OD-MONTH-BEGINNING",
+        (
+            SELECT "ODKPIHelper"(
+                salesGroup, 
+                yesterdayDate, 
+                yesterdayDate, 
+                customerCode, 
+                customerName, 
+                'OD-TILL-YESTERDAY'
+            ) FROM "DUMMY"
+        ) "OD-TILL-YESTERDAY",
+        (
+            SELECT "OSNext5DaysKPIHelper"(
+                salesGroup, 
+                next5DaysStartDate, 
+                next5DaysEndDate, 
+                customerCode,
+                customerName, 
+                'ODNEXT5DAYS'
+            ) FROM "DUMMY"
+        ) "OD-NEXT_5_DAYS"
+    FROM "DUMMY";
+END

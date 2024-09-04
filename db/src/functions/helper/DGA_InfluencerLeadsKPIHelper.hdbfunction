@@ -1,0 +1,61 @@
+FUNCTION "DGA_InfluencerLeadsKPIHelper"(
+    influencerID INTEGER,
+    startDate NVARCHAR(10),
+    endDate NVARCHAR(10),
+    kpiType NVARCHAR(30),
+    isConverted BOOLEAN
+)
+    RETURNS result INTEGER
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+	DECLARE RESULT_COUNT INTEGER := 0;
+
+    IF kpiType = 'KNPL_TO_CONTRACTOR' THEN
+        IF isConverted = false THEN 
+            --KNPL to Contractor - Given
+            SELECT TO_INTEGER(COUNT(DISTINCT(LD."ID"))) INTO "RESULT_COUNT"
+            FROM "DGA_LEADS" LD
+            JOIN "DGA_ASSIGNED_CONTRACTORS" ASCONT ON ASCONT."LEAD_ID" = LD."ID"
+            WHERE LD."IS_ARCHIVED" = 0 
+            AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE(:startDate)
+            AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE(:endDate))
+            AND ASCONT."CONTRACTOR_ID" = :influencerID 
+            AND (LD."SOURCE_CONTRACTOR_ID" != :influencerID OR "SOURCE_CONTRACTOR_ID" IS NULL);
+        ELSE
+            --KNPL to Contractor - Converted
+            SELECT TO_INTEGER(COUNT(DISTINCT(LD."ID"))) INTO "RESULT_COUNT"
+            FROM "DGA_LEADS" LD
+            JOIN "DGA_ASSIGNED_CONTRACTORS" ASCONT ON ASCONT."LEAD_ID" = LD."ID"
+            WHERE LD."IS_ARCHIVED" = 0 
+            AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE(:startDate)
+            AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE(:endDate))
+            AND ASCONT."CONTRACTOR_ID" = :influencerID 
+            AND (LD."SOURCE_CONTRACTOR_ID" != :influencerID OR "SOURCE_CONTRACTOR_ID" IS NULL)
+            AND LD."LEAD_STATUS_ID" IN (2, 6);
+        END IF; 
+    ELSE
+        IF isConverted = false THEN 
+            --KNPL to Contractor - Given
+            SELECT TO_INTEGER(COUNT(DISTINCT(LD."ID"))) INTO "RESULT_COUNT"
+            FROM "DGA_LEADS" LD
+            JOIN "DGA_ASSIGNED_CONTRACTORS" ASCONT ON ASCONT."LEAD_ID" = LD."ID"
+            WHERE LD."IS_ARCHIVED" = 0 
+            AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE(:startDate)
+            AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE(:endDate))
+            AND LD."SOURCE_CONTRACTOR_ID" = :influencerID;
+        ELSE
+            --KNPL to Contractor - Converted
+            SELECT TO_INTEGER(COUNT(DISTINCT(LD."ID"))) INTO "RESULT_COUNT"
+            FROM "DGA_LEADS" LD
+            JOIN "DGA_ASSIGNED_CONTRACTORS" ASCONT ON ASCONT."LEAD_ID" = LD."ID"
+            WHERE LD."IS_ARCHIVED" = 0 
+            AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE(:startDate)
+            AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE(:endDate))
+            AND LD."SOURCE_CONTRACTOR_ID" = :influencerID
+            AND LD."LEAD_STATUS_ID" IN (2, 6);
+        END IF; 
+    END IF;        
+    
+    result := RESULT_COUNT;
+END;

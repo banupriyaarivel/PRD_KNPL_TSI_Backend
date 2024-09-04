@@ -1,0 +1,838 @@
+PROCEDURE "CustomerHLKPI"(
+    salesGroup NVARCHAR(6500),
+    kpiType NVARCHAR(255),
+    columnHeader NVARCHAR(255),
+    rowHeader NVARCHAR(255),
+    townName NVARCHAR(500000),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255),
+    productCategory NVARCHAR(10),
+    productGroup NVARCHAR(255),
+    sortOrder NVARCHAR(5),
+    sortColumn NVARCHAR(255),
+    topRec INTEGER,
+    skipRec INTEGER
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN
+    DECLARE CUSTOMER_CODES NVARCHAR(500000) := '';
+    DECLARE puttyProductID NVARCHAR(4) := 'DC12';
+    DECLARE SQL_STR NVARCHAR(10000) := '';
+    DECLARE FILTER_STR NVARCHAR(500000) := '';
+    DECLARE ORDER_STR NVARCHAR(500) := '';
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE lyMtdStartDate NVARCHAR(10) := "GetMTD"(0, 1);
+    DECLARE lyMtdEndDate NVARCHAR(10) := "GetMTD"(0, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetYTD"(0, 1); 
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetYTD"(0, 0);
+    DECLARE ytdTillStartDate NVARCHAR(10) := "GetYTDTillYesterday"(1, 1);
+    DECLARE ytdTillEndDate NVARCHAR(10) := "GetYTDTillYesterday"(1, 0);
+    DECLARE startMonthCMDate NVARCHAR(10) := "GetMonthCM"(1, 1);
+    DECLARE endMonthCMDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+    DECLARE monthCMStartDate NVARCHAR(10) := "GetMonthCM"(1, 0);
+    DECLARE monthCMEndDate NVARCHAR(10) := "GetMonthCM"(0, 0);
+    -- DECLARE next5StartDate NVARCHAR(10) := "GetNext5Days"(1);
+    -- DECLARE next5EndDate NVARCHAR(10) := "GetNext5Days"(0);
+    DECLARE lyYtdFullStartDate NVARCHAR(10) := "GetLYFull"(1); 
+    DECLARE lyYtdFullEndDate NVARCHAR(10) := "GetLYFull"(0);
+    DECLARE tomorrowStartDate NVARCHAR(10) := "GetNextDays"(1,'Tomorrow');
+    DECLARE tomorrowEndDate NVARCHAR(10) := "GetNextDays"(0,'Tomorrow');
+    DECLARE next3DaysStartDate NVARCHAR(10) := "GetNextDays"(1,'Next3Days');
+    DECLARE next3DaysEndDate NVARCHAR(10) := "GetNextDays"(0,'Next3Days');
+    DECLARE next5DaysStartDate NVARCHAR(10) := "GetNextDays"(1,'Next5Days');
+    DECLARE next5DaysEndDate NVARCHAR(10) := "GetNextDays"(0,'Next5Days');
+    DECLARE next10DaysStartDate NVARCHAR(10) := "GetNextDays"(1,'Next10Days');
+    DECLARE next10DaysEndDate NVARCHAR(10) := "GetNextDays"(0,'Next10Days');
+    DECLARE monthCMDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+
+
+    --Below Threshold Date Logic Start
+    DECLARE ytdThreshold INTEGER := 0; 
+    DECLARE monthVal INTEGER := MONTH(CURRENT_DATE);
+    DECLARE thresholdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE thresholdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE thresholdYTDStartDate NVARCHAR(10) := "GetYTD"(0, 1); --For Last Year April 1st
+    DECLARE thresholdYTDEndDate NVARCHAR(10) := "GetYTD"(1, 0); --till Today
+    DECLARE thresholdLast2MonthStartDate INTEGER := TO_NVARCHAR(ADD_MONTHS(CURRENT_DATE, -1), 'YYYYMM') || '01';
+    DECLARE thresholdLast3MonthStartDate INTEGER := TO_NVARCHAR(ADD_MONTHS(CURRENT_DATE, -2), 'YYYYMM') || '01';
+
+    IF monthVal = 4 THEN
+        ytdThreshold := 25000;
+    ELSE IF monthVal = 5 THEN
+        ytdThreshold := 50000;
+        thresholdStartDate := thresholdLast2MonthStartDate; --Last month + till today's date
+    ELSE
+        ytdThreshold := 75000;
+        thresholdStartDate := thresholdLast3MonthStartDate; --Last to Last month + Last month + till today's date
+    END IF;
+    END IF;
+    --Below Threshold Date Logic End
+
+    IF :kpiType = 'COLLECTION' THEN
+        -- Yesterday and MTD
+        IF :rowHeader = 'Yesterday' THEN
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES 
+            FROM ( SELECT DISTINCT SID_0CUSTOMER
+            FROM "/BI0/F0FIAR_C03" F0FIAR_C03
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP 
+            ON F0FIAR_C03."SID_0SALES_GRP" = SSALES_GRP.SID 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            JOIN "/BI0/SAC_DOC_TYP" SAC_DOC_TYP 
+            ON SAC_DOC_TYP."SID" = F0FIAR_C03."SID_0AC_DOC_TYP" 
+            AND SAC_DOC_TYP."AC_DOC_TYP" IN ('DZ', 'DY', 'DX', 'CQ')
+            JOIN "/BI0/SFI_DOCSTAT" SFI_DOCSTAT 
+            ON SFI_DOCSTAT."SID" = F0FIAR_C03."SID_0FI_DOCSTAT" 
+            AND SFI_DOCSTAT."FI_DOCSTAT" IN ('C', 'O')
+            JOIN "/BI0/SDATE" SDATE ON SDATE."SID" = F0FIAR_C03."SID_0CALDAY"
+            WHERE SDATE."DATE0" BETWEEN yesterdayDate AND yesterdayDate);
+        ELSE
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES 
+            FROM ( SELECT DISTINCT SID_0CUSTOMER
+            FROM "/BI0/F0FIAR_C03" F0FIAR_C03
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP 
+            ON F0FIAR_C03."SID_0SALES_GRP" = SSALES_GRP.SID 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            JOIN "/BI0/SAC_DOC_TYP" SAC_DOC_TYP 
+            ON SAC_DOC_TYP."SID" = F0FIAR_C03."SID_0AC_DOC_TYP" 
+            AND SAC_DOC_TYP."AC_DOC_TYP" IN ('DZ', 'DY', 'DX', 'CQ')
+            JOIN "/BI0/SFI_DOCSTAT" SFI_DOCSTAT 
+            ON SFI_DOCSTAT."SID" = F0FIAR_C03."SID_0FI_DOCSTAT" 
+            AND SFI_DOCSTAT."FI_DOCSTAT" IN ('C', 'O')
+            JOIN "/BI0/SDATE" SDATE 
+            ON SDATE."SID" = F0FIAR_C03."SID_0CALDAY"
+            WHERE SDATE."DATE0" BETWEEN mtdStartDate AND mtdEndDate);
+        END IF;
+    END IF;
+
+    IF :kpiType = 'VALUE' THEN
+        -- Today and Yesterday
+        IF :rowHeader = 'Today' THEN
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT "SID_0CUSTOMER"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                WHERE "SID_0CALDAY" BETWEEN todayDate AND todayDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                GROUP BY "SID_0CUSTOMER" 
+            );  
+        ELSE
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT "SID_0CUSTOMER"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                WHERE "SID_0CALDAY" BETWEEN yesterdayDate AND yesterdayDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                GROUP BY "SID_0CUSTOMER"
+            );
+        END IF;
+    END IF;
+
+    IF :kpiType = 'VOLUME' THEN
+        IF :columnHeader = 'CY' THEN
+            -- Today and Yesterday
+            IF :rowHeader = 'Today' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER"
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                    JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                    AND PMATERIAL."/BIC/CI_PRCTDC" != :puttyProductID 
+                    WHERE FCC_NSALE."SID_0CALDAY" BETWEEN todayDate AND todayDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                );
+            ELSE
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER"
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                    JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                    AND PMATERIAL."/BIC/CI_PRCTDC" != :puttyProductID 
+                    WHERE FCC_NSALE."SID_0CALDAY" BETWEEN yesterdayDate AND yesterdayDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                );
+            END IF;
+        ELSE
+            -- LY MTD and YTD
+            IF :rowHeader = 'MTD' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER"
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                    JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                    AND PMATERIAL."/BIC/CI_PRCTDC" != :puttyProductID 
+                    WHERE FCC_NSALE."SID_0CALDAY" BETWEEN lyMtdStartDate AND lyMtdEndDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                );
+            ELSE
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER"
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                    JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                    AND PMATERIAL."/BIC/CI_PRCTDC" != :puttyProductID 
+                    WHERE FCC_NSALE."SID_0CALDAY" BETWEEN lyYtdStartDate AND lyYtdEndDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                );
+            END IF;
+        END IF;
+    END IF;
+
+    IF :kpiType = 'ACTIVE_DEALER' THEN
+        IF :columnHeader = 'PARTICIPATED' THEN
+            -- LY Full, Today and Yesterday
+            IF :rowHeader = 'LY Full' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    WHERE "SID_0CALDAY" BETWEEN lyYtdFullStartDate AND lyYtdFullEndDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    GROUP BY "SID_0CUSTOMER"
+                ) WHERE VAL >= 300000;
+            ELSE IF :rowHeader = 'Today' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT "SID_0CUSTOMER" FROM (
+                        SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                        FROM "/BIC/FCC_NSALE" FCC_NSALE
+                        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                        ) 
+                        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                        JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                        AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                        WHERE "SID_0CALDAY" BETWEEN todayDate AND todayDate
+                        AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                        AND "SID_0CUSTOMER" IN (
+                            SELECT "SID_0CUSTOMER" FROM (
+                                SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                                FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                                JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID AND SSALES_GRP1.SALES_GRP IN (
+                                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                                ) 
+                                JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                                JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                                AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                                WHERE "SID_0CALDAY" BETWEEN lyYtdFullStartDate AND lyYtdFullEndDate
+                                AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                                GROUP BY "SID_0CUSTOMER"
+                            ) WHERE VAL >= 300000
+                        )
+                        GROUP BY "SID_0CUSTOMER"
+                    ) WHERE VAL > 0                   
+                );
+                ELSE
+                    SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                        SELECT "SID_0CUSTOMER" FROM (
+                            SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                            FROM "/BIC/FCC_NSALE" FCC_NSALE
+                            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                            ) 
+                            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                            JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                            AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                            WHERE "SID_0CALDAY" BETWEEN yesterdayDate AND yesterdayDate
+                            AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
+                            AND SID_0COMP_CODE IN (2)
+                            AND "SID_0CUSTOMER" IN (
+                                SELECT "SID_0CUSTOMER" FROM (
+                                    SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                                    FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                                    JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID AND SSALES_GRP1.SALES_GRP IN (
+                                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                                    ) 
+                                    JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                                    JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                                    AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                                    WHERE "SID_0CALDAY" BETWEEN lyYtdFullStartDate AND lyYtdFullEndDate
+                                    AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                                    GROUP BY "SID_0CUSTOMER"
+                                ) WHERE VAL >= 300000
+                            )
+                            GROUP BY "SID_0CUSTOMER"
+                        ) WHERE VAL > 0                   
+                    );
+                END IF;
+            END IF;
+        ELSE 
+            -- MTD and YTD
+            IF :rowHeader = 'MTD' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (       
+                    SELECT "SID_0CUSTOMER" FROM (
+                        SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                        FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                        JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID AND SSALES_GRP1.SALES_GRP IN (
+                            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                        ) 
+                        JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                        JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                        AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                        WHERE "SID_0CALDAY" BETWEEN lyYtdFullStartDate AND lyYtdFullEndDate
+                        AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                        GROUP BY "SID_0CUSTOMER"
+                    ) WHERE VAL >= 300000   
+                    MINUS          
+                    SELECT "SID_0CUSTOMER" FROM (
+                        SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                        FROM "/BIC/FCC_NSALE" FCC_NSALE
+                        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                        ) 
+                        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                        JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                        AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                        WHERE "SID_0CALDAY" BETWEEN mtdStartDate AND mtdEndDate
+                        AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                        GROUP BY "SID_0CUSTOMER"
+                    ) WHERE VAL > 0
+                );
+            ELSE
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (       
+                    SELECT "SID_0CUSTOMER" FROM (
+                        SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                        FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                        JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID AND SSALES_GRP1.SALES_GRP IN (
+                            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                        ) 
+                        JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                        JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                        AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                        WHERE "SID_0CALDAY" BETWEEN lyYtdFullStartDate AND lyYtdFullEndDate
+                        AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                        GROUP BY "SID_0CUSTOMER"
+                    ) WHERE VAL >= 300000   
+                    MINUS          
+                    SELECT "SID_0CUSTOMER" FROM (
+                        SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                        FROM "/BIC/FCC_NSALE" FCC_NSALE
+                        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                        ) 
+                        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                        JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                        AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                        WHERE "SID_0CALDAY" BETWEEN ytdStartDate AND ytdEndDate
+                        AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                        GROUP BY "SID_0CUSTOMER"
+                    ) WHERE VAL > 0
+                );
+            END IF;            
+        END IF;
+    END IF;
+
+    IF :kpiType = 'BELOW_THRESHOLD' THEN
+        -- MTD and YTD
+        IF :rowHeader = 'MTD' THEN
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT SID_0CUSTOMER, VAL FROM (
+                    SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    WHERE TO_DATE("SID_0CALDAY") BETWEEN mtdStartDate AND mtdEndDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    AND "SID_0CUSTOMER" IN (
+                        SELECT SID_0CUSTOMER FROM (
+                            SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                            FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                            JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID 
+                            AND SSALES_GRP1.SALES_GRP IN (
+                                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                            ) 
+                            JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                            JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                            AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                            WHERE TO_DATE("SID_0CALDAY") BETWEEN thresholdYTDStartDate AND thresholdYTDEndDate
+                            AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
+                            AND SID_0COMP_CODE IN (2)
+                            GROUP BY "SID_0CUSTOMER"
+                        ) WHERE VAL > 0
+                    )
+                    GROUP BY "SID_0CUSTOMER"
+                ) WHERE VAL <= 25000
+            );
+        ELSE
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT SID_0CUSTOMER, VAL FROM (
+                    SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                    FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                    WHERE TO_DATE("SID_0CALDAY") BETWEEN thresholdStartDate AND thresholdEndDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    AND "SID_0CUSTOMER" IN (
+                        SELECT SID_0CUSTOMER FROM (
+                            SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL
+                            FROM "/BIC/FCC_NSALE" FCC_NSALE1
+                            JOIN "/BI0/SSALES_GRP" SSALES_GRP1 ON FCC_NSALE1."SID_0SALES_GRP" = SSALES_GRP1.SID 
+                            AND SSALES_GRP1.SALES_GRP IN (
+                                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                            ) 
+                            JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON SCUSTOMER1."SID" = FCC_NSALE1."SID_0CUSTOMER"
+                            JOIN "/BI0/PCUSTOMER" PCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
+                            AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                            WHERE TO_DATE("SID_0CALDAY") BETWEEN thresholdYTDStartDate AND thresholdYTDEndDate
+                            AND FCC_NSALE1."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
+                            AND SID_0COMP_CODE IN (2)
+                            GROUP BY "SID_0CUSTOMER"
+                        ) WHERE VAL > 0
+                    )
+                    GROUP BY "SID_0CUSTOMER"
+                ) WHERE VAL <= ytdThreshold
+            );
+        END IF;
+    END IF;
+
+    IF :kpiType = 'NEW_CCDS' THEN
+        IF :columnHeader = 'NOT_BILLED' THEN
+            -- MTD_TILL_YESTERDAY
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
+                AND FCC_NSALE."SID_0FISCVARNT" IN (9) AND PCUSTOMER."CUST_CLASS" IN (15, 16)
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                MINUS
+                SELECT DISTINCT "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
+                AND TO_DATE("SID_0CALDAY") BETWEEN mtdTillStartDate AND mtdTillEndDate
+                AND FCC_NSALE."SID_0FISCVARNT" IN (9) AND PCUSTOMER."CUST_CLASS" IN (15, 16)
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+            );
+        ELSE
+            -- Today and Yesterday
+            IF :rowHeader = 'Today' THEN
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT DISTINCT "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                    WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
+                    AND TO_DATE("SID_0CALDAY") BETWEEN todayDate AND todayDate
+                    AND FCC_NSALE."SID_0FISCVARNT" IN (9) AND PCUSTOMER."CUST_CLASS" IN (15, 16)
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                );
+            ELSE
+                SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                    SELECT DISTINCT "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                    WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
+                    AND TO_DATE("SID_0CALDAY") BETWEEN yesterdayDate AND yesterdayDate
+                    AND FCC_NSALE."SID_0FISCVARNT" IN (9) AND PCUSTOMER."CUST_CLASS" IN (15, 16)
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                );                
+            END IF;
+        END IF;
+    END IF;
+
+    IF :kpiType = 'NDOS' THEN
+        IF :columnHeader = 'NOT_BILLED' THEN
+            -- MTD_TILL_YESTERDAY
+            SELECT STRING_AGG("SID_0CUSTOMER", ',') INTO CUSTOMER_CODES FROM(
+                SELECT DISTINCT SCUSTOMER.SID AS "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                AND FCC_NSALE."SID_0FISCVARNT" IN (9)
+                MINUS
+                SELECT DISTINCT SCUSTOMER.SID AS "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                AND TO_DATE("SID_0CALDAY") BETWEEN mtdTillStartDate AND mtdTillEndDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                AND FCC_NSALE."SID_0FISCVARNT" IN (9)
+            );
+        ELSE
+            -- Today and Yesterday
+            IF :rowHeader = 'Today' THEN
+                SELECT STRING_AGG("SID_0CUSTOMER", ',') INTO CUSTOMER_CODES FROM(
+                    SELECT DISTINCT SCUSTOMER.SID AS "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND TO_DATE("SID_0CALDAY") BETWEEN todayDate AND todayDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    AND FCC_NSALE."SID_0FISCVARNT" IN (9)
+                );
+            ELSE
+                SELECT STRING_AGG("SID_0CUSTOMER", ',') INTO CUSTOMER_CODES FROM(
+                    SELECT DISTINCT SCUSTOMER.SID AS "SID_0CUSTOMER" FROM "/BIC/FCC_NSALE" FCC_NSALE
+                    JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                    AND SSALES_GRP.SALES_GRP IN (
+                        SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                    ) 
+                    JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') AND "/BIC/CI_NETVAL" > 0
+                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND TO_DATE("SID_0CALDAY") BETWEEN yesterdayDate AND yesterdayDate
+                    AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                    AND FCC_NSALE."SID_0FISCVARNT" IN (9)
+                );
+            END IF;
+        END IF;
+    END IF;
+
+    -- IF :kpiType = 'OSOD' THEN
+    --     IF :columnHeader = 'NEXT_5_DAYS' THEN
+    --         -- OD
+    --         SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+    --             SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/ACO_CST00" ACO_CST00 
+    --             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_CST00."CUSTOMER"
+    --             JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+    --             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+    --             AND SSALES_GRP.SALES_GRP IN (
+    --                 SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+    --             ) 
+    --             AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+    --             WHERE TO_DATE("/BIC/ZDATE1") BETWEEN next5StartDate AND next5EndDate
+    --         );
+    --     ELSE
+    --         -- OS, OS>60, OD -> Till Yesterday Column
+    --         SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+    --             SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
+    --             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+    --             AND SSALES_GRP.SALES_GRP IN (
+    --                 SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+    --             )
+    --             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
+    --             WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
+    --         ); 
+    --     END IF;
+    -- END IF;
+
+    IF :kpiType = 'OVERALL_VISIT' THEN
+        -- Yesterday
+        SELECT STRING_AGG("CUSTOMERS", ',') INTO CUSTOMER_CODES FROM (
+            SELECT DISTINCT SCUSTOMER."SID" AS CUSTOMERS FROM "/BIC/ACO_VIST100" ACO_VIST100
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ACO_VIST100."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            ) 
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_VIST100."CUSTOMER"
+            WHERE TO_DATE("CALDAY") BETWEEN yesterdayDate AND yesterdayDate
+            AND "/BIC/CI_BPROL" IN ('CRM000', 'BUP002')
+        );
+    END IF;
+
+    IF :kpiType = 'SITE_INFLUENCER_VISIT' THEN
+        -- Yesterday
+        SELECT STRING_AGG("CUSTOMERS", ',') INTO CUSTOMER_CODES FROM (
+            SELECT DISTINCT SCUSTOMER."SID" AS CUSTOMERS FROM "/BIC/ACO_VIST100" ACO_VIST100
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ACO_VIST100."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            ) 
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_VIST100."CUSTOMER"
+            WHERE TO_DATE("CALDAY") BETWEEN yesterdayDate AND yesterdayDate
+            AND "/BIC/ZEMP_LNAM" NOT IN ('Z005', 'Z010', 'Z011', 'Z012', 'Z013', 'Z026', 'Z032', 'Z033', 'Z041', 'Z042', 'Z043') 
+            AND "/BIC/CI_BPROL" IN ('BUP002') 
+        );
+    END IF;
+
+    IF :kpiType = 'CUSTOMER_PROSPECT_VISIT' THEN
+        -- Yesterday
+        SELECT STRING_AGG("CUSTOMERS", ',') INTO CUSTOMER_CODES FROM (
+            SELECT DISTINCT SCUSTOMER."SID" AS CUSTOMERS FROM "/BIC/ACO_VIST100" ACO_VIST100
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ACO_VIST100."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            ) 
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_VIST100."CUSTOMER" 
+            WHERE TO_DATE("CALDAY") BETWEEN yesterdayDate AND yesterdayDate
+            AND (("/BIC/ZEMP_LNAM" IN ('Z005', 'Z010', 'Z011', 'Z012', 'Z013', 'Z026', 'Z032', 'Z033', 'Z041', 'Z042', 'Z043')
+            AND "/BIC/CI_BPROL" IN ('BUP002')) 
+            OR "/BIC/CI_BPROL" IN ('CRM000'))
+        );
+    END IF;
+
+    IF :kpiType = 'PRODUCT' THEN
+        -- Today and Yesterday
+        IF :rowHeader = 'Today' THEN 
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT "SID_0CUSTOMER"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                JOIN "/BIC/TCI_PRCTDC" TCI_PRCTDC ON TCI_PRCTDC."/BIC/CI_PRCTDC" = PMATERIAL."/BIC/CI_PRCTDC" 
+                JOIN "/BIC/PCI_PRGPDC" PCI_PRGPDC ON PCI_PRGPDC."/BIC/CI_PRGPDC" = PMATERIAL."/BIC/CI_PRGPDC"
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER" 
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                WHERE FCC_NSALE."SID_0CALDAY" BETWEEN todayDate AND todayDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                AND PMATERIAL."/BIC/CI_PRCTDC" = :productCategory 
+                AND PMATERIAL."/BIC/CI_PRGPDC" = :productGroup
+            );
+        ELSE
+            SELECT STRING_AGG(SID_0CUSTOMER, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT "SID_0CUSTOMER"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                JOIN "/BI0/SMATERIAL" SMATERIAL ON SMATERIAL."SID" = FCC_NSALE."SID_0MATERIAL" 
+                JOIN "/BI0/PMATERIAL" PMATERIAL ON SMATERIAL."MATERIAL" = PMATERIAL."MATERIAL" 
+                JOIN "/BIC/TCI_PRCTDC" TCI_PRCTDC ON TCI_PRCTDC."/BIC/CI_PRCTDC" = PMATERIAL."/BIC/CI_PRCTDC" 
+                JOIN "/BIC/PCI_PRGPDC" PCI_PRGPDC ON PCI_PRGPDC."/BIC/CI_PRGPDC" = PMATERIAL."/BIC/CI_PRGPDC"
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER" 
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                WHERE FCC_NSALE."SID_0CALDAY" BETWEEN yesterdayDate AND yesterdayDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                AND PMATERIAL."/BIC/CI_PRCTDC" = :productCategory 
+                AND PMATERIAL."/BIC/CI_PRGPDC" = :productGroup
+            );
+        END IF;
+    END IF;
+
+     IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
+
+        IF :rowHeader = 'Today' THEN
+            SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
+                FROM "/BIC/AZOSODN00" AZOSODN00 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"  
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN todayDate AND todayDate  
+            );    
+
+        END IF;
+        IF :rowHeader = 'Tomorrow' THEN
+            SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
+                FROM "/BIC/AZOSODN00" AZOSODN00 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"  
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN tomorrowStartDate AND tomorrowEndDate  
+            );            
+        END IF;
+        IF :rowHeader = 'NEXT 3 DAYS' THEN
+            SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
+                FROM "/BIC/AZOSODN00" AZOSODN00 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"  
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next3DaysStartDate AND next3DaysEndDate  
+            );            
+        END IF;
+        IF :rowHeader = 'NEXT 5 DAYS' THEN
+            SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
+                FROM "/BIC/AZOSODN00" AZOSODN00 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"  
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next5DaysStartDate AND next5DaysEndDate  
+            );            
+        END IF;
+        IF :rowHeader = 'NEXT 10  DAYS' THEN
+            SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
+                FROM "/BIC/AZOSODN00" AZOSODN00 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"  
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                )
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next10DaysStartDate AND next10DaysEndDate  
+            );            
+        END IF;
+        -- IF :columnHeader = 'Month Beginning' THEN
+        -- END IF;
+        IF :columnHeader = 'Till Yesterday' THEN
+            IF :rowHeader = 'OS' OR :rowHeader = 'OS>60' OR :rowHeader = 'OD' THEN
+                SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+                  SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
+                  JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+                  AND SSALES_GRP.SALES_GRP IN (
+                  SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                  )
+                  JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
+                  WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
+                  ); 
+            END IF;   
+            
+        END IF;
+        
+
+    END IF;
+
+    IF CUSTOMER_CODES IS NULL THEN
+    	CUSTOMER_CODES := '';
+    END IF;
+
+    IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
+      -- Main SQL string
+      SQL_STR := 'SELECT TCUST."CUSTOMER" AS "CUSTOMER_CODE", TCUST."TXTMD" AS "CUSTOMER_NAME", '
+    || '(SELECT "OSKPIHelper"(''' || salesGroup || ''', ''' || yesterdayDate || ''', ''' || yesterdayDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OS-TILL-YESTERDAY'') FROM "DUMMY") "OS", '
+    || '(SELECT "OS60KPIHelper"(''' || salesGroup || ''', ''' || monthCMDate || ''', ''' || monthCMDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OS>60-MONTH-BEGINNING'') FROM "DUMMY") "OS60",'
+    || '(SELECT "ODKPIHelper"(''' || salesGroup || ''', ''' || monthCMDate || ''', ''' || monthCMDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OD-MONTH-BEGINNING'') FROM "DUMMY") AS "MONTH_BEGINNING",'
+	|| '(SELECT "ODKPIHelper"(''' || salesGroup || ''', ''' || yesterdayDate || ''', ''' || yesterdayDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OD-TILL-YESTERDAY'') FROM "DUMMY") "CURRENT_OD",'
+    || '(SELECT "UpcomingODHelper"(''' || salesGroup || ''',  ''' || todayDate || ''', ''' || todayDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''Today'') FROM "DUMMY") AS "TODAY",' 
+    || '(SELECT "UpcomingODHelper"(''' || salesGroup || ''', ''' || tomorrowStartDate || ''', ''' || tomorrowEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''Tomorrow'') FROM "DUMMY") AS "TOMORROW",'
+    || '(SELECT "UpcomingODHelper"(''' || salesGroup || ''', ''' || next3DaysStartDate || ''', ''' || next3DaysEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''Next3Days'') FROM "DUMMY") AS "NEXT_3_DAYS",'
+    || '(SELECT "UpcomingODHelper"(''' || salesGroup || ''', ''' || next5DaysStartDate || ''', ''' || next5DaysEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''Next5Days'') FROM "DUMMY") AS "NEXT_5_DAYS",'
+    || '(SELECT "UpcomingODHelper"(''' || salesGroup || ''', ''' || next10DaysStartDate || ''', ''' || next10DaysEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''Next10Days'') FROM "DUMMY") AS "NEXT_10_DAYS" '
+    || 'FROM "/BI0/SCUSTOMER" SCUST '
+    || 'JOIN "/BI0/TCUSTOMER" TCUST ON SCUST."CUSTOMER" = TCUST."CUSTOMER" '
+    || 'JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUST."CUSTOMER" AND PCUSTOMER."ACCNT_GRP" IN (''G001'', ''G007'', ''G008'') '
+    || 'JOIN "/BIC/TCI_TOWN" TCI_TOWN ON PCUSTOMER."/BIC/CI_TOWN" = TCI_TOWN."/BIC/CI_TOWN" '
+    || 'WHERE SCUST."SID" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || CUSTOMER_CODES || ''')) ';
+      
+    ELSE 
+	-- Main SQL string
+    SQL_STR := 'SELECT TCUST."CUSTOMER" AS "CUSTOMER_CODE", TCUST."TXTMD" AS "CUSTOMER_NAME", '
+    || '(SELECT "SGCEIKPIHelper"(''' || salesGroup || ''', ''' || startMonthCMDate || ''', ''' || endMonthCMDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''SGCEI'') FROM "DUMMY") "CEI", '
+    || '(SELECT "ValueKPIHelper"(''' || salesGroup || ''', ''' || mtdTillStartDate || ''', ''' || mtdTillEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD") FROM "DUMMY") "VALUE_MTD_TILL_YESTERDAY",'
+    || '(SELECT "VisitsKPIHelper"(''' || salesGroup || ''', ''' || mtdTillStartDate || ''', ''' || mtdTillEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", false) FROM "DUMMY") AS "VISITS_MTD_TILL_YESTERDAY",'
+	|| '(SELECT "ODKPIHelper"(''' || salesGroup || ''', ''' || startMonthCMDate || ''', ''' || endMonthCMDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OD-YTD'') FROM "DUMMY") "OD_YTD",'
+    || '(SELECT "OSKPIHelper"(''' || salesGroup || ''', ''' || ytdStartDate || ''', ''' || ytdEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OS-YTD'') FROM "DUMMY") AS "OS_YTD",' 
+    || '(SELECT "CollectionKPIHelper"(''' || salesGroup || ''', ''' || mtdTillStartDate || ''', ''' || mtdTillEndDate || ''', TCUST."CUSTOMER", TCUST."TXTMD") FROM "DUMMY") AS "COLLECTION_MTD_TILL_YESTERDAY" '
+    || 'FROM "/BI0/SCUSTOMER" SCUST '
+    || 'JOIN "/BI0/TCUSTOMER" TCUST ON SCUST."CUSTOMER" = TCUST."CUSTOMER" '
+    || 'JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUST."CUSTOMER" AND PCUSTOMER."ACCNT_GRP" IN (''G001'', ''G007'', ''G008'') '
+    || 'JOIN "/BIC/TCI_TOWN" TCI_TOWN ON PCUSTOMER."/BIC/CI_TOWN" = TCI_TOWN."/BIC/CI_TOWN" '
+    || 'WHERE SCUST."SID" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || CUSTOMER_CODES || ''')) ';
+  END IF;
+    -- Filter string
+    IF townName IS NOT NULL THEN
+    	FILTER_STR := ' AND TCI_TOWN."/BIC/CI_TOWN" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || townName || ''')) ';
+    END IF;
+    IF customerCode IS NOT NULL THEN
+    	FILTER_STR := FILTER_STR || ' AND PCUSTOMER."CUSTOMER" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || customerCode || ''')) ';
+    END IF;
+    IF customerName IS NOT NULL THEN
+    	FILTER_STR := FILTER_STR || ' AND PCUSTOMER."CUSTOMER" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || customerName || ''')) ';
+    END IF;
+    
+    -- Order and Limit string
+    ORDER_STR := ' GROUP BY TCUST."CUSTOMER", TCUST."TXTMD" ';
+    IF sortColumn IS NOT NULL THEN
+    	ORDER_STR := ORDER_STR || ' ORDER BY ' || sortColumn || ' ' || sortOrder || ' LIMIT ' || topRec || ' OFFSET ' || skipRec || ';';
+    ELSE
+    	ORDER_STR := ORDER_STR || ' ORDER BY TCUST."CUSTOMER" ASC' || ' LIMIT ' || topRec || ' OFFSET ' || skipRec || ';';
+    END IF;
+    
+    EXECUTE IMMEDIATE(SQL_STR || FILTER_STR || ORDER_STR);
+    
+    SQL_STR := 'SELECT COUNT(DISTINCT TCUSTOMER."CUSTOMER") AS TOTAL_COUNT ' ||
+    'FROM "/BI0/SCUSTOMER" SCUSTOMER ' ||
+    'JOIN "/BI0/TCUSTOMER" TCUSTOMER ON SCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER" ' ||
+    'JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = TCUSTOMER."CUSTOMER"  ' ||
+    'JOIN "/BIC/TCI_TOWN" TCI_TOWN ON PCUSTOMER."/BIC/CI_TOWN" = TCI_TOWN."/BIC/CI_TOWN" ' ||
+    'AND PCUSTOMER."ACCNT_GRP" IN (''G001'', ''G007'', ''G008'') ' ||
+    'WHERE SCUSTOMER."SID" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || CUSTOMER_CODES || ''')) ' ;
+    
+    EXECUTE IMMEDIATE(SQL_STR || FILTER_STR);
+END;

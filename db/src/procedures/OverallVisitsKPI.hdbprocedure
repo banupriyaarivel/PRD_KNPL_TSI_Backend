@@ -1,0 +1,91 @@
+PROCEDURE "OverallVisitsKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT 
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                yesterdayDate,
+                yesterdayDate,
+                customerCode,
+                customerName,
+                false
+            ) FROM "DUMMY"
+        ) "Total-Yesterday",
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                mtdTillStartDate,
+                mtdTillEndDate,
+                customerCode,
+                customerName,
+                false
+            ) FROM "DUMMY"
+        ) "Total-MTD*",
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                mtdStartDate,
+                mtdEndDate,
+                customerCode,
+                customerName,
+                false
+            ) FROM "DUMMY"
+        ) "Total-MTD",
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                ytdStartDate,
+                ytdEndDate,
+                customerCode,
+                customerName,
+                false
+            ) FROM "DUMMY"
+        ) "Total-YTD",
+
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                mtdTillStartDate,
+                mtdTillEndDate,
+                customerCode,
+                customerName,
+                true
+            ) FROM "DUMMY"
+        ) "Avg-MTD*",
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                mtdStartDate,
+                mtdEndDate,
+                customerCode,
+                customerName,
+                true
+            ) FROM "DUMMY"
+        ) "Avg-MTD",
+        (
+            SELECT "VisitsKPIHelper"(
+                salesGroup,
+                ytdStartDate,
+                ytdEndDate,
+                customerCode,
+                customerName,
+                true
+            ) FROM "DUMMY"
+        ) "Avg-YTD"
+    FROM "DUMMY";
+END

@@ -1,0 +1,59 @@
+FUNCTION "GetNext5Days"(isStartDate INTEGER)
+    RETURNS result NVARCHAR(10)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := CURRENT_DATE;
+        
+    DECLARE startDateVal DATE := ADD_DAYS(currentDateVal, 1);
+    
+    DECLARE startDateMonthVal INTEGER := MONTH(startDateVal);
+    DECLARE startDateMonth NVARCHAR(10) := '';
+
+    DECLARE startDateDayVal INTEGER := DAYOFMONTH(startDateVal);
+    DECLARE startDateDay NVARCHAR(10) := '';
+
+    DECLARE endDateVal DATE := ADD_DAYS(currentDateVal, 5);
+
+    DECLARE endDateMonthVal INTEGER := MONTH(endDateVal);
+    DECLARE endDateMonth NVARCHAR(10) := '';
+
+    DECLARE endDateDayVal INTEGER := DAYOFMONTH(endDateVal);
+    DECLARE endDateDay NVARCHAR(10) := '';
+
+    -- Format month of start date
+    IF startDateMonthVal < 10 THEN
+        startDateMonth := '0' || startDateMonthVal;
+    ELSE
+        startDateMonth := startDateMonthVal;
+    END IF;
+
+    -- Format day of start date
+    IF startDateDayVal < 10 THEN
+        startDateDay := '0' || startDateDayVal;
+    ELSE
+        startDateDay := startDateDayVal;
+    END IF;
+
+    -- Format month of end date
+    IF endDateMonthVal < 10 THEN
+        endDateMonth := '0' || endDateMonthVal;
+    ELSE
+        endDateMonth := endDateMonthVal;
+    END IF;
+
+    -- Format day of end date
+    IF endDateDayVal < 10 THEN
+        endDateDay := '0' || endDateDayVal;
+    ELSE
+        endDateDay := endDateDayVal;
+    END IF;
+
+    IF isStartDate = 1 THEN
+        -- result := (YEAR(startDateVal)) || startDateMonth || startDateDay;
+        result := '20210926';
+    ELSE
+        -- result := (YEAR(endDateVal)) || endDateMonth || endDateDay;
+        result := '20210930';
+    END IF;
+END;

@@ -1,0 +1,48 @@
+PROCEDURE "YTDTrendsParticipationKPI"(salesGroup NVARCHAR(6500))
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE startDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE endDate NVARCHAR(10) := "GetYTD"(1, 0);
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetYTD"(0, 1); 
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetYTD"(0, 0);
+
+    SELECT SUBSTRING("MonthName", 6) AS "NAME", COUNT(SID_0CUSTOMER) AS "VALUE" FROM (
+        SELECT "SID_0CUSTOMER", "MonthName" FROM (
+            SELECT "SID_0CUSTOMER", "VAL", "MonthName" FROM (
+                SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL,
+                TO_NVARCHAR(TO_DATE("SID_0CALDAY"), 'YYYY-Mon') AS "MonthName"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE "SID_0CALDAY" BETWEEN lyYtdStartDate AND lyYtdEndDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                GROUP BY "SID_0CUSTOMER", "SID_0CALDAY"
+            ) WHERE VAL >= 300000
+        )
+        UNION
+        SELECT "SID_0CUSTOMER", "MonthName" FROM (
+            SELECT "SID_0CUSTOMER", "VAL", "MonthName" FROM (
+                SELECT "SID_0CUSTOMER", SUM("/BIC/CI_NETVAL") as VAL,
+                TO_NVARCHAR(TO_DATE("SID_0CALDAY"), 'YYYY-Mon') AS "MonthName"
+                FROM "/BIC/FCC_NSALE" FCC_NSALE
+                JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
+                AND SSALES_GRP.SALES_GRP IN (
+                    SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+                ) 
+                JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
+                JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+                WHERE "SID_0CALDAY" BETWEEN startDate AND endDate
+                AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) AND SID_0COMP_CODE IN (2)
+                GROUP BY "SID_0CUSTOMER", "SID_0CALDAY"
+            ) WHERE VAL > 0
+        )
+    )GROUP BY "MonthName";
+END

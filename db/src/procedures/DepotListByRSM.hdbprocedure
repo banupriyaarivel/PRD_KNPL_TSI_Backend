@@ -1,0 +1,39 @@
+PROCEDURE "DepotListByRSM"(
+    email NVARCHAR(255), 
+    searchText NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE rsmCnt INTEGER := 0;
+    DECLARE upperEmail NVARCHAR(255) := UPPER(:email);
+    DECLARE userId INTEGER := 0;
+
+    SELECT COUNT(USERT."ID") INTO rsmCnt FROM "USER" USERT
+    JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID"
+    WHERE USERT."IS_ARCHIVED" = 0 AND USERT."IS_ACTIVATED" = 1 AND MUR."ROLE_ID" = 1
+    AND UPPER(USERT."EMAIL") = :upperEmail;
+
+    IF rsmCnt > 0 THEN
+        IF searchText IS NULL THEN 
+            SELECT "EMAIL_DSM" AS "EMAIL", "VWERK" AS "DEPOT",
+            STRING_AGG("VKGRP", ',') AS "SALES_GROUP",
+            false AS "IS_SELECTED", true AS "IS_VISIBLE"
+            FROM "DGA_ZEMP_MASTER_ECC"
+            WHERE UPPER("EMAIL_DSM") = :upperEmail AND "EMAIL_ASM" != ''
+            AND "VKGRP" != '' AND "VKGRP" != 'N.A'
+            GROUP BY "VWERK", "EMAIL_DSM" ORDER BY "VWERK" ASC;
+        ELSE 
+            searchText := '%' || UPPER(searchText) || '%';
+            
+            SELECT "EMAIL_DSM" AS "EMAIL", "VWERK" AS "DEPOT",
+            STRING_AGG("VKGRP", ',') AS "SALES_GROUP", 
+            false AS "IS_SELECTED", true AS "IS_VISIBLE"
+            FROM "DGA_ZEMP_MASTER_ECC"
+            WHERE UPPER("EMAIL_DSM") = :upperEmail AND "EMAIL_ASM" != ''
+            AND "VKGRP" != '' AND "VKGRP" != 'N.A'
+            AND (UPPER("EMAIL_ASM") LIKE searchText OR UPPER("ASMNAME") LIKE searchText)
+            GROUP BY "VWERK", "EMAIL_DSM" ORDER BY "VWERK" ASC;            
+        END IF;
+    END IF;
+END;

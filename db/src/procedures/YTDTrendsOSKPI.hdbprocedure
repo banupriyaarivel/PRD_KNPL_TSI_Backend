@@ -1,0 +1,34 @@
+PROCEDURE "YTDTrendsOSKPI"(salesGroup NVARCHAR(6500), OSValue INTEGER)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE startDate NVARCHAR(10) := "GetMonthCM"(1, 1);
+    DECLARE endDate NVARCHAR(10) := "GetMonthCM"(0, 1);
+
+    IF OSValue = 60 THEN
+        SELECT SUBSTRING("MonthName", 6) AS "NAME", TO_DOUBLE(SUM("NET_VALUE")) AS "VALUE" FROM (
+            SELECT TO_NVARCHAR(TO_DATE("SID_0CALMONTH"), 'YYYY-Mon') AS "MonthName",
+            TO_DECIMAL(SUM("/BIC/CKOD120UC") / 100000, 1, 1) AS "NET_VALUE"
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE  FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate
+            GROUP BY "SID_0CALMONTH"
+        ) GROUP BY "MonthName";
+    ELSE
+        SELECT SUBSTRING("MonthName", 6) AS "NAME", TO_DOUBLE(SUM("NET_VALUE")) AS "VALUE" FROM (
+            SELECT TO_NVARCHAR(TO_DATE("SID_0CALMONTH"), 'YYYY-Mon') AS "MonthName",
+            TO_DECIMAL(SUM("/BIC/CKOD90GR" + "/BIC/CKOD90UC") / 100000, 1, 1) AS "NET_VALUE"
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE  FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate
+            GROUP BY "SID_0CALMONTH"
+        ) GROUP BY "MonthName";
+    END IF;
+END

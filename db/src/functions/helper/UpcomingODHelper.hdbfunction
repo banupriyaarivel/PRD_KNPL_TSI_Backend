@@ -1,0 +1,137 @@
+FUNCTION "UpcomingODHelper"(
+  salesGroup NVARCHAR(6500), 
+  startDate NVARCHAR(10),
+  endDate NVARCHAR(10),
+  customerCode NVARCHAR(500000),
+  customerName NVARCHAR(255),
+  kpiType NVARCHAR(20)
+  ) 
+  RETURNS result DECIMAL(17, 1)
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER AS 
+BEGIN
+  IF customerCode IS NULL THEN
+   
+    IF kpiType = 'Today' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZDUETOD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+    IF kpiType = 'Tomorrow' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT1DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+    
+      IF kpiType = 'Next3Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT3DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Next5Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT5DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Next10Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT10DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+  
+ELSE
+    
+    IF kpiType = 'Today' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZDUETOD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"
+        AND SCUSTOMER."CUSTOMER" IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Tomorrow' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT1DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"
+        AND SCUSTOMER."CUSTOMER" IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Next3Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT3DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"
+        AND SCUSTOMER."CUSTOMER" IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Next5Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT5DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"
+        AND SCUSTOMER."CUSTOMER" IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+
+      IF kpiType = 'Next10Days' THEN
+        SELECT TO_DECIMAL(SUM("/BIC/ZAFT10DD") / 100000, 1, 1) INTO result
+        FROM "/BIC/AZOSODN00" AZOSODN00
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP."SALES_GRP"  
+        AND SSALES_GRP.SALES_GRP IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        )
+        JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER"
+        AND SCUSTOMER."CUSTOMER" IN (
+            SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        )
+        WHERE AZOSODN00."CALDAY" BETWEEN startDate AND endDate;
+    END IF;
+END IF;
+END;

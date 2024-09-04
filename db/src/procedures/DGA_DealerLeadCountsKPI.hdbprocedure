@@ -1,0 +1,33 @@
+PROCEDURE "DGA_DealerLeadCountsKPI"(
+    dealerCodes NVARCHAR(500000)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+	DECLARE todayDate NVARCHAR(10) := "DGA_GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "DGA_GetTodayYesterday"(1, 1);
+    DECLARE mtdStartDate NVARCHAR(10) := "DGA_GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "DGA_GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "DGA_GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "DGA_GetYTD"(1, 0);
+
+	SELECT (
+        SELECT "DGA_DealerLeadCountsKPIHelper"(dealerCodes, todayDate, todayDate) 
+		FROM "DUMMY"
+    ) "CY-Today",
+    (
+        SELECT "DGA_DealerLeadCountsKPIHelper"(dealerCodes, yesterdayDate, yesterdayDate) 
+		FROM "DUMMY"
+    ) "CY-Yesterday",
+    (
+        SELECT "DGA_DealerLeadCountsKPIHelper"(dealerCodes, mtdStartDate, mtdEndDate) 
+		FROM "DUMMY"
+    ) "CY-MTD",
+    (
+        SELECT "DGA_DealerLeadCountsKPIHelper"(dealerCodes, ytdStartDate, ytdEndDate) 
+		FROM "DUMMY"
+    ) "CY-YTD"
+    FROM "DUMMY";    
+
+END;

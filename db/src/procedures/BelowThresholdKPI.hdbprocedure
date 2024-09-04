@@ -1,0 +1,25 @@
+PROCEDURE "BelowThresholdKPI"(salesGroup NVARCHAR(6500))
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   --DEFAULT SCHEMA <default_schema_name>
+   READS SQL DATA AS
+BEGIN    
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(0, 1); --For Last Year April 1st
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0); --till Today
+
+    SELECT 
+    (
+        SELECT "BelowThresholdKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, ytdStartDate, ytdEndDate) FROM "DUMMY"
+    ) "BELOW-THRESHOLD-MTD-TILL",
+    (
+        SELECT "BelowThresholdKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, ytdStartDate, ytdEndDate) FROM "DUMMY"
+    ) "BELOW-THRESHOLD-MTD",
+    (
+        SELECT "YTDThresholdKPIHelper"(salesGroup, ytdStartDate, ytdEndDate) FROM "DUMMY"
+    ) "BELOW-THRESHOLD-YTD"
+    FROM "DUMMY";
+END

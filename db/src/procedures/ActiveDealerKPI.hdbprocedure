@@ -1,0 +1,42 @@
+PROCEDURE "ActiveDealerKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   --DEFAULT SCHEMA <default_schema_name>
+   READS SQL DATA AS
+BEGIN
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetLYFull"(1); 
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetLYFull"(0);
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, lyYtdStartDate, lyYtdEndDate, customerCode, customerName, 'PARTICIPATED_LY') FROM "DUMMY"
+    ) "Participated-LY-FULL",
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, todayDate, todayDate, customerCode, customerName, 'PARTICIPATED') FROM "DUMMY"
+    ) "Participated-Today",
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, customerCode, customerName, 'PARTICIPATED') FROM "DUMMY"
+    ) "Participated-Yesterday",
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, customerCode, customerName, 'PARTICIPATED') FROM "DUMMY"
+    ) "Participated-MTD*",
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, customerCode, customerName, 'PARTICIPATED') FROM "DUMMY"
+    ) "Participated-MTD",
+    (
+        SELECT "ParticipationKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, customerCode, customerName, 'PARTICIPATED') FROM "DUMMY"
+    ) "Participated-YTD"
+    FROM "DUMMY";
+END

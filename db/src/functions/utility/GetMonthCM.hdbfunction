@@ -1,0 +1,32 @@
+FUNCTION "GetMonthCM"(isStartDate INTEGER, isCalMonth INTEGER)
+    RETURNS result NVARCHAR(10)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := CURRENT_DATE;
+    DECLARE monthVal INTEGER := MONTH(currentDateVal);
+    DECLARE yearVal INTEGER := YEAR(currentDateVal);
+    
+    IF isCalMonth = 1 THEN 
+        IF isStartDate = 1 THEN
+            IF monthVal < 4 THEN
+                -- result := (yearVal - 1) || '04';
+                result := '202104';
+            ELSE
+                -- result := yearVal || '04';
+                result := '202104';
+            END IF;
+        ELSE
+            -- result := TO_NVARCHAR(currentDateVal, 'YYYYMM');
+            result := '202109';
+        END IF;
+    ELSE 
+        IF isStartDate = 1 THEN
+            -- result := TO_NVARCHAR(currentDateVal, 'YYYYMM') || '01';
+            result := '20210901';
+        ELSE
+            -- result := TO_NVARCHAR(currentDateVal, 'YYYYMMDD');
+            result := '20210930';
+        END IF;
+    END IF;    
+END;

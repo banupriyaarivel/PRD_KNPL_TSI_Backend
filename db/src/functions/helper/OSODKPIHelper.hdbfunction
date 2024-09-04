@@ -1,0 +1,128 @@
+FUNCTION "OSODKPIHelper"(
+    salesGroup NVARCHAR(6500), 
+    startDate NVARCHAR(10),
+    endDate NVARCHAR(10),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255),
+    kpiType NVARCHAR(20)
+)
+    RETURNS result DECIMAL(17, 1)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    IF customerCode IS NULL THEN
+        IF kpiType = 'SGCEI' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX") / 100000, 1, 1) INTO result
+            FROM "/BIC/ADS_EFIND00" ADS_EFIND00
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE "CALMONTH" BETWEEN startDate AND endDate
+            AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X';
+        END IF;
+        IF kpiType = 'OS' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_MBOD") / 100000, 1, 1) INTO result
+            FROM "/BIC/AZOSODN00" AZOSODN00
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE "CALDAY" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'OS>60' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CKOD120UC") / 100000, 1, 1) INTO result
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'OD' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_ODGR") / 100000, 1, 1) INTO result
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            WHERE FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'ODNEXT5DAYS' THEN            
+            SELECT TO_DECIMAL(SUM("/BIC/ZDMBTR") / 100000, 1, 1) INTO result
+            FROM "/BIC/ACO_CST00" ACO_CST00
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_CST00."CUSTOMER"
+            JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER"            
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP"
+             AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            ) 
+            AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008')
+            WHERE "/BIC/ZDATE1" BETWEEN startDate AND endDate;
+        END IF;
+    ELSE
+        IF kpiType = 'SGCEI' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX") / 100000, 1, 1) INTO result
+            FROM "/BIC/ADS_EFIND00" ADS_EFIND00
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ADS_EFIND00."CUSTOMER" 
+            AND SCUSTOMER."CUSTOMER" IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+            )
+            WHERE "CALMONTH" BETWEEN startDate AND endDate
+            AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X';
+        END IF;
+        IF kpiType = 'OS' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_MBOD") / 100000, 1, 1) INTO result
+            FROM "/BIC/AZOSODN00" AZOSODN00
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
+            AND SCUSTOMER."CUSTOMER" IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+            )
+            WHERE "CALDAY" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'OS>60' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CKOD120UC") / 100000, 1, 1) INTO result
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )            
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_COLPLN."SID_0CUSTOMER"
+            AND SCUSTOMER."CUSTOMER" IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+            )
+            WHERE FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'OD' THEN
+            SELECT TO_DECIMAL(SUM("/BIC/CK_ODGR") / 100000, 1, 1) INTO result
+            FROM "/BIC/FCC_COLPLN" FCC_COLPLN
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_COLPLN."SID_0SALES_GRP" = SSALES_GRP."SID" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )            
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_COLPLN."SID_0CUSTOMER"
+            AND SCUSTOMER."CUSTOMER" IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+            ) 
+            WHERE FCC_COLPLN."SID_0CALMONTH" BETWEEN startDate AND endDate;
+        END IF;
+        IF kpiType = 'ODNEXT5DAYS' THEN            
+            SELECT TO_DECIMAL(SUM("/BIC/ZDMBTR") / 100000, 1, 1) INTO result
+            FROM "/BIC/ACO_CST00" ACO_CST00
+            JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ACO_CST00."CUSTOMER"
+            JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER"            
+            JOIN "/BI0/SSALES_GRP" SSALES_GRP ON PCUSTOMER."SALES_GRP" = SSALES_GRP."SALES_GRP" 
+            AND SSALES_GRP.SALES_GRP IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            )  
+            AND SCUSTOMER."CUSTOMER" IN (
+                SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+            )
+            WHERE "/BIC/ZDATE1" BETWEEN startDate AND endDate;
+        END IF;
+    END IF;
+END;

@@ -1,0 +1,82 @@
+{
+  "name": "TSI",
+  "version": "1.0.0",
+  "description": "TSI CAP Project",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap-cloud-sdk/http-client": "^3.4.0",
+    "@sap/cds": "^7.0.0",
+    "@sap/cds-dk": "^7.0.0",
+    "@sap/cds-odata-v2-adapter-proxy": "^1.8.11",
+    "@sap/hana-client": "^2.21.28",
+    "@sap/hdbext": "^8.0.6",
+    "@sap/xsenv": "^5.2.0",
+    "@sap/xssec": "^3.2.17",
+    "express": "^4",
+    "hdb": "^0.18.3",
+    "passport": "^0.5.3",
+    "sap-hdbext-promisfied": "^2.202203.1"
+  },
+  "devDependencies": {
+    "@sap/hdi-deploy": "^4.3.0",
+    "sqlite3": "^5.0.2"
+  },
+  "scripts": {
+    "start": "npm rebuild && npx cds run",
+    "buildpush": "mbt build -p=cf && cf deploy mta_archives/TSI_1.0.0.mtar"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "es2020": true,
+      "node": true,
+      "jest": true,
+      "mocha": true
+    },
+    "globals": {
+      "SELECT": true,
+      "INSERT": true,
+      "UPDATE": true,
+      "DELETE": true,
+      "CREATE": true,
+      "DROP": true,
+      "CDL": true,
+      "CQL": true,
+      "CXL": true,
+      "cds": true
+    },
+    "rules": {
+      "no-console": "off",
+      "require-atomic-updates": "off"
+    }
+  },
+  "cds": {
+    "hana": {
+      "deploy-format": "hdbtable"
+    },
+    "requires": {
+      "db": {
+        "kind": "hana"
+      },
+      "pragati-api": {
+        "kind": "rest",
+        "credentials": {
+          "url": "https://kansai-nerolac-paints-ltd-knpl-painter-dev-dev-tsi-pragati-srv.cfapps.ap10.hana.ondemand.com",
+          "authentication": "BasicAuthentication",
+          "headers": {
+            "Authorization": "Basic VFNJLVBSQUdBVEktVVNFUjpHVVN1ITVJYz8wWjdnOEYmcyppUGgtIW81b3A2dTg="
+          },
+          "requestTimeout": 30000
+        }
+      },
+      "user-api-access": {
+        "kind": "odata",
+        "credentials": {
+          "destination": "KNPL_TSI_USER_API_ACCESS"
+        }
+      }
+    }
+  }
+}

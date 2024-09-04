@@ -1,0 +1,23 @@
+exports.formatCustomerCNEarnedData = (output) => {
+    const outArr = [];
+    const outputResults = output.results;
+    for (let i = 0, arrL = outputResults.length; i < arrL; i++) {
+        let outputResData = outputResults[i];
+        outArr.push({
+            NAME: "MTD*",
+            CY: {
+                VALUE: outputResData["MTD*"] ? String(outputResData["MTD*"]) : "0",
+                IS_HL: false
+            }
+        });
+        outArr.push({
+            NAME: "YTD",
+            CY: {
+                VALUE: outputResData["YTD"] ? String(outputResData["YTD"]) : "0",
+                IS_HL: false
+            }
+        });
+    }
+    
+    return outArr;
+}

@@ -1,0 +1,60 @@
+PROCEDURE "SalesValueKPI"(
+    salesGroup NVARCHAR(6500),
+    customerCode NVARCHAR(500000),
+    customerName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   --DEFAULT SCHEMA <default_schema_name>
+   READS SQL DATA AS
+BEGIN
+    DECLARE lyTodayDate NVARCHAR(10) := "GetTodayYesterday"(0, 0);
+    DECLARE lyYesterdayDate NVARCHAR(10) := "GetTodayYesterday"(0, 1);
+    DECLARE lyMtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 1);
+    DECLARE lyMtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(0, 0);
+    DECLARE lyMtdStartDate NVARCHAR(10) := "GetMTD"(0, 1);
+    DECLARE lyMtdEndDate NVARCHAR(10) := "GetMTD"(0, 0);
+    DECLARE lyYtdStartDate NVARCHAR(10) := "GetYTD"(0, 1);
+    DECLARE lyYtdEndDate NVARCHAR(10) := "GetYTD"(0, 0);
+    DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
+    DECLARE yesterdayDate NVARCHAR(10) := "GetTodayYesterday"(1, 1);
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT
+    (
+        SELECT "ValueKPIHelper"(salesGroup, lyTodayDate, lyTodayDate, customerCode, customerName) FROM "DUMMY"
+    ) "LY-Today",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, lyYesterdayDate, lyYesterdayDate, customerCode, customerName) FROM "DUMMY"
+    ) "LY-Yesterday",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, lyMtdTillStartDate, lyMtdTillEndDate,customerCode, customerName) FROM "DUMMY"
+    ) "LY-MTD*",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, lyMtdStartDate, lyMtdEndDate, customerCode, customerName) FROM "DUMMY"
+    ) "LY-MTD",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, lyYtdStartDate, lyYtdEndDate, customerCode, customerName) FROM "DUMMY"
+    ) "LY-YTD",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, todayDate, todayDate, customerCode, customerName) FROM "DUMMY"
+    ) "CY-Today",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, yesterdayDate, yesterdayDate, customerCode, customerName) FROM "DUMMY"
+    ) "CY-Yesterday",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, mtdTillStartDate, mtdTillEndDate, customerCode, customerName) FROM "DUMMY"
+    ) "CY-MTD*",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, mtdStartDate, mtdEndDate, customerCode, customerName) FROM "DUMMY"
+    ) "CY-MTD",
+    (
+        SELECT "ValueKPIHelper"(salesGroup, ytdStartDate, ytdEndDate, customerCode, customerName) FROM "DUMMY"
+    ) "CY-YTD"
+    FROM "DUMMY";
+END

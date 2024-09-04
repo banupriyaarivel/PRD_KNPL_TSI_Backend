@@ -1,0 +1,130 @@
+PROCEDURE "UserProfile"(
+    email NVARCHAR(255), 
+    appVersion NVARCHAR(100),
+    firstName NVARCHAR(255),
+    lastName NVARCHAR(255)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE tsiCnt INTEGER := 0;
+    DECLARE asmrsmCnt INTEGER := 0;
+    DECLARE asmCnt INTEGER := 0;
+    DECLARE rsmCnt INTEGER := 0;
+    DECLARE updatedRowId INTEGER;
+    DECLARE currentAppVersion NVARCHAR(100) := '';
+    DECLARE appURL NVARCHAR(500) := '';
+    DECLARE upperEmail NVARCHAR(255) := UPPER(:email);
+    DECLARE userId INTEGER := 0;
+
+    SELECT COUNT(USERT."ID") INTO tsiCnt FROM "USER" USERT
+    JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID"
+    WHERE USERT."IS_ARCHIVED" = 0 AND USERT."IS_ACTIVATED" = 1 AND MUR."ROLE_ID" = 3
+    AND UPPER(USERT."EMAIL") = :upperEmail;
+
+    SELECT COUNT(USERT."ID") INTO asmrsmCnt FROM "USER" USERT
+    JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID"
+    WHERE USERT."IS_ARCHIVED" = 0 AND USERT."IS_ACTIVATED" = 1 AND MUR."ROLE_ID" IN (1, 2)
+    AND UPPER(USERT."EMAIL") = :upperEmail;
+    
+    IF tsiCnt = 0 AND asmrsmCnt = 0 THEN
+        SELECT COUNT(*) INTO asmCnt FROM "DGA_ZEMP_MASTER_ECC" 
+        WHERE UPPER("EMAIL_ASM") = :upperEmail;
+
+        SELECT COUNT(*) INTO rsmCnt FROM "DGA_ZEMP_MASTER_ECC" 
+        WHERE UPPER("EMAIL_DSM") = :upperEmail;
+
+        IF rsmCnt > 0 THEN 
+            INSERT INTO "USER" ("FIRST_NAME", "LAST_NAME", "EMAIL" ) 
+            VALUES (:firstName, :lastName, :email);
+
+            updatedRowId := current_identity_value();
+
+            INSERT INTO "MAP_USER_ROLE" (
+                "USER_ID", "ROLE_ID", "IS_ARCHIVED", "CREATED_AT", "UPDATED_AT"
+            ) VALUES (
+                :updatedRowId, 1, 0, CURRENT_UTCTIMESTAMP, CURRENT_UTCTIMESTAMP
+            );
+            COMMIT;
+            asmrsmCnt := 1;
+
+        END IF;
+
+        IF asmCnt > 0 THEN 
+            INSERT INTO "USER" ("FIRST_NAME", "LAST_NAME", "EMAIL") 
+            VALUES (:firstName, :lastName, :email);
+            COMMIT;
+
+            updatedRowId := current_identity_value();
+
+            INSERT INTO "MAP_USER_ROLE" (
+                "USER_ID", "ROLE_ID", "IS_ARCHIVED", "CREATED_AT", "UPDATED_AT"
+            ) VALUES (
+                :updatedRowId, 2, 0, CURRENT_UTCTIMESTAMP, CURRENT_UTCTIMESTAMP
+            );
+            COMMIT;
+            asmrsmCnt := 1;
+
+        END IF;
+    END IF;
+
+    IF tsiCnt = 0 AND asmrsmCnt = 0 THEN
+        SELECT NULL AS "FIRST_NAME", NULL AS "LAST_NAME", NULL AS "EMAIL", NULL AS "PROFILE_IMAGE",
+        NULL AS "SALES_GROUP", 'NO_USER_EMAIL' AS "ERROR", NULL AS "APP_URL" FROM "DUMMY";
+    ELSE
+        SELECT "VALUE" INTO currentAppVersion FROM "APP_CONFIG" WHERE KEY = 'VERSION';
+
+        SELECT "ID" INTO userId FROM "USER" 
+        WHERE "IS_ARCHIVED" = 0 AND "IS_ACTIVATED" = 1 AND UPPER("EMAIL") = :upperEmail;
+
+        IF appVersion >= currentAppVersion THEN
+            IF tsiCnt > 0 THEN 
+                SELECT DISTINCT USERT."FIRST_NAME", USERT."LAST_NAME", USERT."EMAIL", USERT."PROFILE_IMAGE", MUR."ROLE_ID", 
+                STRING_AGG(USER_SALES_GROUP_MAP."SALES_GROUP", ',') AS "SALES_GROUP",
+                NULL AS "ERROR", NULL AS "APP_URL"
+                FROM "USER" AS USERT
+                JOIN "USER_SALES_GROUP_MAP" AS USER_SALES_GROUP_MAP ON USERT."ID" = USER_SALES_GROUP_MAP."USER_ID" AND USER_SALES_GROUP_MAP."IS_ARCHIVED" = 0
+                JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID"
+                WHERE USERT."ID" = :userId 
+                GROUP BY USERT."FIRST_NAME", USERT."LAST_NAME",USERT."EMAIL", 
+                USERT."PROFILE_IMAGE", MUR."ROLE_ID";
+            ELSE 
+                SELECT DISTINCT USERT."FIRST_NAME", USERT."LAST_NAME", USERT."EMAIL", 
+                USERT."PROFILE_IMAGE", MUR."ROLE_ID",
+                (
+                    CASE WHEN MUR."ROLE_ID" = 1 THEN 
+                        (SELECT STRING_AGG("VKGRP", ',') AS "SALES_GROUP" FROM "DGA_ZEMP_MASTER_ECC"
+                        WHERE UPPER("EMAIL_DSM") = :upperEmail) 
+                    ELSE 
+                        (SELECT STRING_AGG("VKGRP", ',') AS "SALES_GROUP" FROM "DGA_ZEMP_MASTER_ECC"
+                        WHERE UPPER("EMAIL_ASM") = :upperEmail)
+                    END
+                ) AS "SALES_GROUP",
+                NULL AS "ERROR", NULL AS "APP_URL"
+                FROM "USER" AS USERT 
+                JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID"
+                WHERE USERT."ID" = :userId 
+                GROUP BY USERT."FIRST_NAME", USERT."LAST_NAME",USERT."EMAIL", 
+                USERT."PROFILE_IMAGE", MUR."ROLE_ID";            
+            END IF;
+
+            SELECT COUNT("ID") INTO tsiCnt FROM "USER" 
+            WHERE "ID" = :userId AND "APP_VERSION" = :appVersion;
+
+            IF tsiCnt = 0 THEN
+                UPDATE "USER" SET "APP_VERSION" = :appVersion, "UPDATED_AT" = CURRENT_UTCTIMESTAMP 
+                WHERE "ID" = :userId;
+                COMMIT;
+            END IF;
+
+            UPDATE "USER" SET "LAST_LOGIN_AT" = CURRENT_UTCTIMESTAMP 
+            WHERE "ID" = :userId;
+            COMMIT;
+        ELSE
+            SELECT "VALUE" INTO appURL FROM "APP_CONFIG" WHERE KEY = 'APP_URL';
+
+            SELECT NULL AS "FIRST_NAME", NULL AS "LAST_NAME", NULL AS "EMAIL", NULL AS "PROFILE_IMAGE",
+            NULL AS "SALES_GROUP", 'APP_VERSION_MISMATCH' AS "ERROR", appURL AS "APP_URL" FROM "DUMMY";
+        END IF;
+    END IF;
+END;

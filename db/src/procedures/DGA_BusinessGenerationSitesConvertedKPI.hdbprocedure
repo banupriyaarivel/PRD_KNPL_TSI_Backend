@@ -1,0 +1,31 @@
+PROCEDURE "DGA_BusinessGenerationSitesConvertedKPI"(
+    dealerCodes NVARCHAR(500000)
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    SELECT (
+        SELECT COUNT(DISTINCT("ID")) FROM "DGA_LEADS" LD
+        WHERE "IS_ARCHIVED" = 0 AND LD."LEAD_STATUS_ID" IN (2, 6)
+        AND LD."DGA_ID" IN (
+            SELECT DGAS."ID" FROM "DGA_DGAS" DGAS 
+            JOIN "DGA_MAP_DGA_DEALERS" MDD ON MDD."DGA_ID" = DGAS."ID"
+            WHERE MDD."DEALER_ID" IN (SELECT "RESULT" FROM "SplitCommaString"(:dealerCodes))
+        )
+        AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE("DGA_GetMTD"(1, 1))
+        AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE("DGA_GetMTD"(1, 0)))
+    ) "MTD",
+    (
+        SELECT COUNT(DISTINCT("ID")) FROM "DGA_LEADS" LD
+        WHERE "IS_ARCHIVED" = 0 AND LD."LEAD_STATUS_ID" IN (2, 6)
+        AND LD."DGA_ID" IN (
+            SELECT DGAS."ID" FROM "DGA_DGAS" DGAS 
+            JOIN "DGA_MAP_DGA_DEALERS" MDD ON MDD."DGA_ID" = DGAS."ID"
+            WHERE MDD."DEALER_ID" IN (SELECT "RESULT" FROM "SplitCommaString"(:dealerCodes))
+        )
+        AND (TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) >= TO_DATE("DGA_GetYTD"(1, 1))
+        AND TO_DATE(UTCTOLOCAL((LD."CREATED_AT"), 'Asia/Kolkata')) <= TO_DATE("DGA_GetYTD"(1, 0)))
+    ) "YTD"
+    FROM DUMMY;
+END;

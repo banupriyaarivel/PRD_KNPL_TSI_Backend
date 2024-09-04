@@ -1,0 +1,12 @@
+{
+    "role": {
+        "name": "TSI::analytics",
+        "schema_privileges": [
+            {
+                "privileges": [
+                    "SELECT"
+                ]
+            }
+        ]
+    }
+}

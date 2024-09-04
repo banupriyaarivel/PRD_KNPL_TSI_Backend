@@ -1,0 +1,37 @@
+PROCEDURE "NotVisitedKPI"(salesGroup NVARCHAR(6500))
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+
+    DECLARE mtdTillStartDate NVARCHAR(10) := "GetMTDTillYesterday"(1, 1);
+    DECLARE mtdTillEndDate NVARCHAR(10) := "GetMTDTillYesterday"(1,0);
+    DECLARE mtdStartDate NVARCHAR(10) := "GetMTD"(1, 1);
+    DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
+    DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
+    DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
+
+    SELECT 
+        (
+            SELECT "NotVisitedKPIHelper"(
+                salesGroup,
+                mtdTillStartDate,
+                mtdTillEndDate
+            ) FROM "DUMMY"
+        ) "Customer-MTD*",
+        (
+            SELECT "NotVisitedKPIHelper"(
+                salesGroup,
+                mtdStartDate,
+                mtdEndDate
+            ) FROM "DUMMY"
+        ) "Customer-MTD",
+        (
+            SELECT "NotVisitedKPIHelper"(
+                salesGroup,
+                ytdStartDate,
+                ytdEndDate
+            ) FROM "DUMMY"
+        ) "Customer-YTD"
+    FROM "DUMMY";
+END

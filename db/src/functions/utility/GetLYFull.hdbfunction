@@ -1,0 +1,27 @@
+FUNCTION "GetLYFull"(isStartDate INTEGER)
+    RETURNS result NVARCHAR(10)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := CURRENT_DATE;
+    DECLARE yearVal INTEGER := YEAR(currentDateVal);
+    DECLARE monthVal INTEGER := MONTH(currentDateVal);
+
+    IF isStartDate = 1 THEN
+        IF monthVal < 4 THEN
+            -- result := (yearVal - 2) || '0401';
+            result := '20200401';
+        ELSE
+            -- result := (yearVal - 1) || '0401';
+            result := '20200401';
+        END IF;
+    ELSE
+        IF monthVal < 4 THEN
+            -- result := (yearVal - 1) || '0331';
+            result := '20200401';
+        ELSE
+            -- result := yearVal || '0331';
+            result := '20200401';
+        END IF;
+    END IF;
+END;

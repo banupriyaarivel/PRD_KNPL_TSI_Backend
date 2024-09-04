@@ -1,0 +1,25 @@
+node_modules
+mta_archives/
+db/.env
+.vscode/settings.json
+package-lock.json
+gen/
+**/default-env.json
+# auto generated wildcard
+.env
+# auto generated wildcard
+gen/db/.env
+# added by cds
+.cdsrc-private.json
+
+# added by cds
+.cdsrc-private.json
+
+# added by cds
+.cdsrc-private.json
+
+# added by cds
+.cdsrc-private.json
+
+# auto generated wildcard
+.env2

@@ -1,0 +1,77 @@
+PROCEDURE "TSIUserList"(
+    searchText NVARCHAR(257),
+    salesGroup NVARCHAR(15000),
+    appStatus NVARCHAR(255),
+    sortOrder NVARCHAR(5),
+    sortColumn NVARCHAR(255),
+    topRec INTEGER,
+    skipRec INTEGER,
+    roleId INTEGER
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   READS SQL DATA AS
+BEGIN
+    DECLARE SQL_STR NVARCHAR(10000) := '';
+    DECLARE FILTER_STR NVARCHAR(500000) := '';
+    DECLARE ORDER_STR NVARCHAR(500) := '';
+
+    -- Main SQL string
+    SQL_STR := 
+    'SELECT DISTINCT USERT."ID", USERT."FIRST_NAME", USERT."LAST_NAME", USERT."EMAIL", ' ||
+    'STRING_AGG(USGM."SALES_GROUP", '','') AS "SALES_GROUP", USERT."EMPLOYEE_CODE",  ' ||
+    'TO_NVARCHAR(UTCTOLOCAL(("LAST_LOGIN_AT"), ''Asia/Kolkata''), ''DD/MM/YYYY HH:MI:SS AM'') AS "LAST_LOGIN_TIME", ' ||
+    'USERT.IS_ACTIVATED, MUR."ROLE_ID", MROLES."NAME" AS "ROLE_NAME", ' ||
+    '(CASE WHEN USERT.IS_ACTIVATED = 1 THEN ''Activated'' ELSE ''Deactivated'' END) AS STATUS, USERT."APP_VERSION", ' ||
+    '(CASE WHEN USERT."APP_VERSION" IS NULL THEN ''Not Installed'' ELSE ''Installed'' END) AS "APP_STATUS" ' ||
+    'FROM "USER" AS USERT ' ||
+    'LEFT JOIN "USER_SALES_GROUP_MAP" AS USGM ' ||
+    'ON USERT."ID" = USGM."USER_ID" AND USGM."IS_ARCHIVED" = 0 ' ||
+    'JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID" ' ||
+    'JOIN "MSTR_ROLES" AS MROLES ON MROLES."ID" = MUR."ROLE_ID" ' ||
+    'WHERE USERT."IS_ARCHIVED" = 0 ';
+
+    -- Filter string
+    IF searchText IS NOT NULL THEN
+        searchText := '%' || UPPER(searchText) || '%';
+
+        FILTER_STR := ' AND (' ||
+            ' UPPER(USERT."FIRST_NAME") LIKE ''' || searchText || ''' OR UPPER(USERT."LAST_NAME") LIKE ''' || searchText || ''' OR UPPER(USERT."EMAIL") LIKE ''' || searchText || ''' OR UPPER(USERT."APP_VERSION") LIKE ''' || searchText || ''' OR UPPER(USERT."EMPLOYEE_CODE") LIKE ''' || searchText || ''') ';
+    END IF;
+
+    IF salesGroup IS NOT NULL THEN
+        FILTER_STR := FILTER_STR || ' AND USGM."SALES_GROUP" IN (SELECT "RESULT" FROM "SplitCommaString"(''' || salesGroup || '''))';
+    END IF;
+
+    IF appStatus IS NOT NULL THEN
+        IF appStatus = 'Installed' THEN
+            FILTER_STR := FILTER_STR || ' AND USERT."APP_VERSION" IS NOT NULL ';
+        ELSE
+            FILTER_STR := FILTER_STR || ' AND USERT."APP_VERSION" IS NULL ';
+        END IF;
+    END IF;
+
+    IF roleId IS NOT NULL THEN
+        FILTER_STR := FILTER_STR || ' AND MUR."ROLE_ID" =' || roleId;
+    END IF;
+
+    ORDER_STR := ' GROUP BY USERT."ID", USERT."FIRST_NAME", USERT."LAST_NAME", USERT."EMAIL", USERT."EMPLOYEE_CODE", USERT."LAST_LOGIN_AT", USERT.IS_ACTIVATED, USERT."APP_VERSION", MUR."ROLE_ID", MROLES.NAME ';
+    IF sortColumn IS NOT NULL THEN
+        ORDER_STR := ORDER_STR || ' ORDER BY ' || sortColumn || ' ' || sortOrder;
+    ELSE
+        ORDER_STR := ORDER_STR || ' ORDER BY USERT."FIRST_NAME" ASC';
+    END IF;
+
+    IF topRec IS NOT NULL THEN
+        ORDER_STR := ORDER_STR || ' LIMIT ' || topRec || ' OFFSET ' || skipRec || ';';
+    END IF;
+
+    EXECUTE IMMEDIATE(SQL_STR || FILTER_STR || ORDER_STR);
+
+    SQL_STR := 'SELECT COUNT(DISTINCT USERT."ID") AS TOTAL_COUNT '
+    'FROM "USER" AS USERT ' ||
+    'JOIN "MAP_USER_ROLE" AS MUR ON USERT."ID" = MUR."USER_ID" ' ||
+    'WHERE USERT."IS_ARCHIVED" = 0 ';
+
+    EXECUTE IMMEDIATE(SQL_STR || FILTER_STR);
+END;

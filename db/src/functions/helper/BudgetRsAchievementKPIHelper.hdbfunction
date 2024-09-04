@@ -1,0 +1,35 @@
+FUNCTION "BudgetRsAchievementKPIHelper" (salesGroup NVARCHAR(6500))
+    RETURNS TABLE ("ACHIEVE_MTD" DOUBLE, "ACHIEVE_YTD" DOUBLE)
+    LANGUAGE SQLSCRIPT
+    SQL SECURITY INVOKER AS
+BEGIN
+    DECLARE currentDateVal DATE := TO_DATE("GetTodayYesterday"(1, 0));
+    DECLARE mtdString NVARCHAR(10) := TO_NVARCHAR(currentDateVal, 'YYYYMM');
+    DECLARE startDateStr NVARCHAR(10);
+    DECLARE rsAchievementValYTD DOUBLE := 0.0;
+    DECLARE rsAchievementValMTD DOUBLE := 0.0;
+
+    IF MONTH(currentDateVal) < 4 THEN
+        startDateStr := (YEAR(currentDateVal) - 1) || '04';
+    ELSE
+        startDateStr := YEAR(currentDateVal) || '04';
+    END IF;
+
+    SELECT SUM("/BIC/ZBUGE_VA1") INTO rsAchievementValMTD FROM "/BIC/AZADSO_BG12"  
+    WHERE "SALES_GRP" IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+    AND "CALMONTH" BETWEEN mtdString AND mtdString;
+
+    SELECT SUM("/BIC/ZBUGE_VA1") INTO rsAchievementValYTD FROM "/BIC/AZADSO_BG12" 
+    WHERE "SALES_GRP" IN (SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)) 
+    AND "CALMONTH" BETWEEN startDateStr AND mtdString;
+
+    IF rsAchievementValMTD = 0 OR rsAchievementValMTD = '0.0' THEN
+    	rsAchievementValMTD := NULL;
+    END IF;
+    
+    IF rsAchievementValYTD = 0 OR rsAchievementValYTD = '0.0' THEN
+    	rsAchievementValYTD := NULL;
+    END IF;
+
+    RETURN SELECT rsAchievementValMTD AS "ACHIEVE_MTD", rsAchievementValYTD AS "ACHIEVE_YTD" FROM "DUMMY";
+END;
