@@ -15,7 +15,7 @@ exports.formatCustomerHLODData = (output) => {
             CURRENT_OD:
                 customer.CURRENT_OD ? String(customer.CURRENT_OD) : '0.0',
             TODAY:
-                customer.TODAY ? String(customer.OS_YTD) : '0.0',
+                customer.TODAY ? String(customer.TODAY) : '0.0',
             TOMORROW:
                 customer.TOMORROW ? String(customer.TOMORROW) : '0.0',
             NEXT_3_DAYS:
@@ -30,5 +30,5 @@ exports.formatCustomerHLODData = (output) => {
         CUSTOMERS: customersList,
         TOTAL_COUNT: totalCount
     };
-    return outObj;
+     return outObj;
 }
