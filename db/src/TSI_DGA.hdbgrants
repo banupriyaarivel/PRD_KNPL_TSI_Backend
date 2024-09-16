@@ -1,5 +1,5 @@
 {
-    "TSI_DGA_ACCESS": {
+    "knpl-tsi-dga-access": {
         "object_owner": {
             "roles": [
                 "TSI::external_access"

@@ -2,7 +2,7 @@
   "/BIC/FCC_NSALE": {
     "target": {
       "object": "/BIC/FCC_NSALE",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "DUMMY": {
@@ -14,163 +14,163 @@
   "/BIC/ADS_EFIND00": {
     "target": {
       "object": "/BIC/ADS_EFIND00",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/AZOSODN00": {
     "target": {
       "object": "/BIC/AZOSODN00",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/F0FIAR_C03": {
     "target": {
       "object": "/BI0/F0FIAR_C03",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/ACO_VIST100": {
     "target": {
       "object": "/BIC/ACO_VIST100",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/TCI_TOWN": {
     "target": {
       "object": "/BIC/TCI_TOWN",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SSALES_GRP": {
     "target": {
       "object": "/BI0/SSALES_GRP",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SCUSTOMER": {
     "target": {
       "object": "/BI0/SCUSTOMER",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/TCUSTOMER": {
     "target": {
       "object": "/BI0/TCUSTOMER",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/PCUSTOMER": {
     "target": {
       "object": "/BI0/PCUSTOMER",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SMATERIAL": {
     "target": {
       "object": "/BI0/SMATERIAL",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/PMATERIAL": {
     "target": {
       "object": "/BI0/PMATERIAL",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SDATE": {
     "target": {
       "object": "/BI0/SDATE",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SAC_DOC_TYP": {
     "target": {
       "object": "/BI0/SAC_DOC_TYP",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/TAC_DOC_TYP": {
     "target": {
       "object": "/BI0/TAC_DOC_TYP",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SFI_DOCSTAT": {
     "target": {
       "object": "/BI0/SFI_DOCSTAT",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "USER": {
     "target": {
       "object": "USER",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "USER_SALES_GROUP_MAP": {
     "target": {
       "object": "USER_SALES_GROUP_MAP",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/PCI_PRGPDC": {
     "target": {
       "object": "/BIC/PCI_PRGPDC",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/ACO_SHCUS00": {
     "target": {
       "object": "/BIC/ACO_SHCUS00",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/FCC_COLPLN": {
     "target": {
       "object": "/BIC/FCC_COLPLN",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/ACO_CST00": {
     "target": {
       "object": "/BIC/ACO_CST00",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/TCI_PRCTDC": {
     "target": {
       "object": "/BIC/TCI_PRCTDC",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/SPLANT": {
     "target": {
       "object": "/BI0/SPLANT",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BI0/PPLANT": {
     "target": {
       "object": "/BI0/PPLANT",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "/BIC/AZADSO_BG12": {
     "target": {
       "object": "/BIC/AZADSO_BG12",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "FOCUS_PRODUCT": {
     "target": {
       "object": "FOCUS_PRODUCT",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "APP_CONFIG": {
     "target": {
       "object": "APP_CONFIG",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "DGA_MSTR_DISTRICTS": {
@@ -236,7 +236,7 @@
   "/BIC/AAO_INCENT2": {
     "target": {
       "object": "/BIC/AAO_INCENT2",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "DGA_ZEMP_MASTER_ECC": {
@@ -245,20 +245,18 @@
       "schema": "SAPGNP"
     }
   },
-
   "MSTR_ROLES": {
     "target": {
       "object": "MSTR_ROLES",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
   "MAP_USER_ROLE": {
     "target": {
       "object": "MAP_USER_ROLE",
-      "schema": "DB_HDI_DB_1"
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
-
   "DGA_MAP_DGA_CONTRACTORS": {
     "target": {
       "object": "MAP_DGA_CONTRACTORS",

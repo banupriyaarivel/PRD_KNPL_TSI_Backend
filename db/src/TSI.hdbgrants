@@ -1,5 +1,5 @@
 {
-    "TSI-ACCESS": {
+    "knpl-tsi-access": {
         "object_owner": {
             "roles": [
                 "TSI::external_access"

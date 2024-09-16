@@ -1,4 +1,4 @@
-//  @(requires : 'authenticated-user')
+ @(requires : 'authenticated-user')
 @path:'/tsi'
 service TSIService {
     define type GeneralValueType {
@@ -23,7 +23,7 @@ service TSIService {
         NAME            : String;
         MONTH_BEGINNING : GeneralValueType;
         TILL_YESTERDAY  : GeneralValueType;
-        // NEXT_5_DAYS     : GeneralValueType; (OD Enhancement - Remove next 5 days)
+        // NEXT_5_DAYS     : GeneralValueType; // (OD Enhancement - Remove next 5 days)
     }
 
     define type NewCCDKPIResult {

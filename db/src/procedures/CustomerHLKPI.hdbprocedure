@@ -577,16 +577,16 @@ BEGIN
     --             WHERE TO_DATE("/BIC/ZDATE1") BETWEEN next5StartDate AND next5EndDate
     --         );
     --     ELSE
-    --         -- OS, OS>60, OD -> Till Yesterday Column
-    --         SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
-    --             SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
-    --             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
-    --             AND SSALES_GRP.SALES_GRP IN (
-    --                 SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
-    --             )
-    --             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
-    --             WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
-    --         ); 
+            ---- OS, OS>60, OD -> Till Yesterday Column
+            -- SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+            --     SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
+            --     JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+            --     AND SSALES_GRP.SALES_GRP IN (
+            --         SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+            --     )
+            --     JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
+            --     WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
+            -- ); 
     --     END IF;
     -- END IF;
 
@@ -706,7 +706,7 @@ BEGIN
                 WHERE AZOSODN00."CALDAY" BETWEEN tomorrowStartDate AND tomorrowEndDate  
             );            
         END IF;
-        IF :rowHeader = 'NEXT 3 DAYS' THEN
+        IF :rowHeader = 'Next 3 Days' THEN
             SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
                 SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
                 FROM "/BIC/AZOSODN00" AZOSODN00 
@@ -720,7 +720,7 @@ BEGIN
                 WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next3DaysStartDate AND next3DaysEndDate  
             );            
         END IF;
-        IF :rowHeader = 'NEXT 5 DAYS' THEN
+        IF :rowHeader = 'Next 5 Days' THEN
             SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
                 SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
                 FROM "/BIC/AZOSODN00" AZOSODN00 
@@ -734,7 +734,7 @@ BEGIN
                 WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next5DaysStartDate AND next5DaysEndDate  
             );            
         END IF;
-        IF :rowHeader = 'NEXT 10  DAYS' THEN
+        IF :rowHeader = 'Next 10 Days' THEN
             SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
                 SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" 
                 FROM "/BIC/AZOSODN00" AZOSODN00 
@@ -748,9 +748,26 @@ BEGIN
                 WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next10DaysStartDate AND next10DaysEndDate  
             );            
         END IF;
-        -- IF :columnHeader = 'Month Beginning' THEN
+        -- IF :columnHeader = 'TILL_YESTERDAY' THEN
+        --     IF :rowHeader = 'OS' OR :rowHeader = 'OS>60' OR :rowHeader = 'OD' THEN
+        --         SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
+        --           SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
+        --           JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+        --           AND SSALES_GRP.SALES_GRP IN (
+        --           SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        --           )
+        --           JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
+        --           WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
+        --           ); 
+        --     END IF;   
+            
         -- END IF;
-        IF :columnHeader = 'Till Yesterday' THEN
+        
+
+    END IF;
+
+    IF :kpiType = 'OSOD' THEN
+        IF :columnHeader = 'TILL_YESTERDAY' THEN
             IF :rowHeader = 'OS' OR :rowHeader = 'OS>60' OR :rowHeader = 'OD' THEN
                 SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
                   SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
@@ -761,18 +778,17 @@ BEGIN
                   JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
                   WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
                   ); 
-            END IF;   
-            
+            END IF;        
         END IF;
-        
-
+    
     END IF;
 
     IF CUSTOMER_CODES IS NULL THEN
     	CUSTOMER_CODES := '';
     END IF;
 
-    IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
+    -- IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
+     IF (:kpiType = 'UPCOMING_OD') THEN
       -- Main SQL string
       SQL_STR := 'SELECT TCUST."CUSTOMER" AS "CUSTOMER_CODE", TCUST."TXTMD" AS "CUSTOMER_NAME", '
     || '(SELECT "OSKPIHelper"(''' || salesGroup || ''', ''' || yesterdayDate || ''', ''' || yesterdayDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OS-TILL-YESTERDAY'') FROM "DUMMY") "OS", '

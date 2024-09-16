@@ -18,6 +18,24 @@
       "problemMatcher": [
         "$cap-hdi-bind-handler"
       ]
+    },
+    {
+      "label": "cds-deploy-to-hana-KNPL_TSI_Backend_code-knpl-tsi-hdi-container",
+      "type": "shell",
+      "command": "cds",
+      "args": [
+        "deploy",
+        "--to",
+        "hana:knpl-tsi-hdi-container",
+        "--no-save"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [
+        "$cap-hdi-bind-handler"
+      ]
     }
   ]
 }

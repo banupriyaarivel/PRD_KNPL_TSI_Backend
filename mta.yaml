@@ -4,12 +4,12 @@ description: TSI CAP Project
 version: 1.0.0
 
 modules:
-- name: TSI-srv
+- name: knpl-tsi-app-srv
   type: nodejs
   path: gen/srv
   requires:
-    - name: TSI-HDI-CONTAINER
-    - name: TSI-xsuaa
+    - name: knpl-tsi-hdi-container
+    - name: knpl-tsi-xsuaa-service
     - name: knpl-tsi-destination-service
   provides:
   - name: srv-api
@@ -21,41 +21,41 @@ modules:
   build-parameters:
     builder: npm-ci
 
-- name: TSI-db-Deployer
+- name: knpl-tsi-app-db-deployer
   type: hdb
   path: gen/db
   requires:
-  - name: TSI-HDI-CONTAINER
-  - name: TSI-ACCESS
-  - name: TSI_DGA_ACCESS
+  - name: knpl-tsi-hdi-container
+  - name: knpl-tsi-access
+  - name: knpl-tsi-dga-access
   parameters:
     buildpack: nodejs_buildpack
     memory: 128MB
 
 resources:
-- name: TSI-HDI-CONTAINER
+- name: knpl-tsi-hdi-container
   type: com.sap.xs.hdi-container
   properties:
     hdi-container-name: ${service-name}
-- name: TSI-ACCESS
+- name: knpl-tsi-access
   type: org.cloudfoundry.existing-service
   parameters:
-    service-name: TSI-ACCESS
+    service-name: knpl-tsi-access
   properties:
-    the-service-name: ${service-name}   
-- name: TSI_DGA_ACCESS
+    the-service-name: ${service-name}    
+- name: knpl-tsi-dga-access
   type: org.cloudfoundry.existing-service
   parameters:
-    service-name: TSI_DGA_ACCESS
+    service-name: knpl-tsi-dga-access
   properties:
-    the-service-name: ${service-name}   
-- name: TSI-xsuaa
+    the-service-name: ${service-name}    
+- name: knpl-tsi-xsuaa-service
   parameters:
     path: ./xs-security.json  
     service: xsuaa    
     service-plan: application
     service-keys: 
-      - name: TSI-xsuaa-key      
+      - name: knpl-tsi-xsuaa-service-key      
   type: org.cloudfoundry.managed-service
 - name: knpl-tsi-destination-service
   type: org.cloudfoundry.managed-service

@@ -8,23 +8,89 @@ BEGIN
 
     IF isCY = 1 THEN
         IF isYesterday = 1 THEN
-            -- result := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'YYYYMMDD');
-            result := '20210929';
+            result := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'YYYYMMDD');
+            -- result := '20210929';
         ELSE
-            -- result := TO_NVARCHAR(CURRENT_DATE, 'YYYYMMDD');
-            result := '20210930';
+            result := TO_NVARCHAR(CURRENT_DATE, 'YYYYMMDD');
+            -- result := '20210930';
         END IF;  
     ELSE
         IF isYesterday = 1 THEN
-            -- dateCheck := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'MMDD');
-            -- IF dateCheck = '0229' THEN dateCheck := '0228' END IF;
-            -- result := (yearVal - 1) || dateCheck;
-            result := '20200929';
+            dateCheck := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'MMDD');
+            IF dateCheck = '0229' THEN dateCheck := '0228'; END IF;
+            result := (yearVal - 1) || dateCheck;
+            -- result := '20200929';
         ELSE
-            -- dateCheck := TO_NVARCHAR(CURRENT_DATE, 'MMDD');
-            -- IF dateCheck = '0229' THEN dateCheck := '0228' END IF;
-            -- result := (yearVal - 1) || dateCheck;
-            result := '20200930';
+            dateCheck := TO_NVARCHAR(CURRENT_DATE, 'MMDD');
+            IF dateCheck = '0229' THEN dateCheck := '0228'; END IF;
+            result := (yearVal - 1) || dateCheck;
+            -- result := '20200930';
         END IF;
     END IF;  
 END;
+
+-- FUNCTION "GetTodayYesterday"(isCY INTEGER, isYesterday INTEGER)
+--     RETURNS result NVARCHAR(20)
+--     LANGUAGE SQLSCRIPT
+--     SQL SECURITY INVOKER AS
+-- BEGIN
+--     DECLARE currentDateVal DATE := CURRENT_DATE;
+--     DECLARE yearVal INTEGER := YEAR(currentDateVal);
+--     DECLARE dateCheck NVARCHAR(10) := '';
+
+--     IF isCY = 1 THEN
+--         IF isYesterday = 1 THEN
+--             result := TO_NVARCHAR(ADD_DAYS(currentDateVal, -1), 'YYYYMMDD');
+--             result := TO_NVARCHAR(result, 'YYYY-MM-DD');
+--         ELSE
+--             result := TO_NVARCHAR(currentDateVal, 'YYYYMMDD');
+--             result := TO_NVARCHAR(result, 'YYYY-MM-DD');
+--         END IF;  
+--     ELSE
+--         IF isYesterday = 1 THEN
+--             dateCheck := TO_NVARCHAR(ADD_DAYS(currentDateVal, -1), 'MMDD');
+--             IF dateCheck = '0229' THEN dateCheck := '0228'; END IF;
+--             result := TO_NVARCHAR(yearVal - 1) || dateCheck;
+--             result := TO_NVARCHAR(result, 'YYYY-MM-DD');
+--         ELSE
+--             dateCheck := TO_NVARCHAR(currentDateVal, 'MMDD');
+--             IF dateCheck = '0229' THEN dateCheck := '0228'; END IF;
+--             result := TO_NVARCHAR(yearVal - 1) || dateCheck;
+--             result := TO_NVARCHAR(result, 'YYYY-MM-DD');
+--         END IF;
+--     END IF;
+-- END;
+
+
+
+
+-- FUNCTION "GetTodayYesterday"(isCY INTEGER, isYesterday INTEGER)
+--     RETURNS result NVARCHAR(10)
+--     LANGUAGE SQLSCRIPT
+--     SQL SECURITY INVOKER AS
+-- BEGIN
+--     DECLARE yearVal INTEGER := YEAR(CURRENT_DATE);
+--     DECLARE dateCheck NVARCHAR(10) := '';
+
+--     IF isCY = 1 THEN
+--         IF isYesterday = 1 THEN
+--             -- result := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'YYYYMMDD');
+--             result := '20210929';
+--         ELSE
+--             -- result := TO_NVARCHAR(CURRENT_DATE, 'YYYYMMDD');
+--             result := '20210930';
+--         END IF;  
+--     ELSE
+--         IF isYesterday = 1 THEN
+--             -- dateCheck := TO_NVARCHAR(ADD_DAYS(CURRENT_DATE, -1), 'MMDD');
+--             -- IF dateCheck = '0229' THEN dateCheck := '0228' END IF;
+--             -- result := (yearVal - 1) || dateCheck;
+--             result := '20200929';
+--         ELSE
+--             -- dateCheck := TO_NVARCHAR(CURRENT_DATE, 'MMDD');
+--             -- IF dateCheck = '0229' THEN dateCheck := '0228' END IF;
+--             -- result := (yearVal - 1) || dateCheck;
+--             result := '20200930';
+--         END IF;
+--     END IF;  
+-- END; 

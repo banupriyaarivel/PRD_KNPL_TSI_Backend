@@ -5,7 +5,7 @@ const proxy= require('@sap/cds-odata-v2-adapter-proxy');
 const xsenv = require('@sap/xsenv');
 const passport = require('passport');
 const JWTStrategy = require('@sap/xssec').JWTStrategy;
-const services = xsenv.getServices({ uaa:'TSI-xsuaa' });
+const services = xsenv.getServices({ uaa: 'knpl-tsi-xsuaa-service' });
 
 cds.on('bootstrap', app =>{
     app.use(proxy());
