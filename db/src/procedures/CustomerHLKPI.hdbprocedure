@@ -20,7 +20,7 @@ PROCEDURE "CustomerHLKPI"(
 BEGIN
     DECLARE CUSTOMER_CODES NVARCHAR(500000) := '';
     DECLARE puttyProductID NVARCHAR(4) := 'DC12';
-    DECLARE SQL_STR NVARCHAR(10000) := '';
+    DECLARE SQL_STR NVARCHAR(500000) := '';
     DECLARE FILTER_STR NVARCHAR(500000) := '';
     DECLARE ORDER_STR NVARCHAR(500) := '';
     DECLARE todayDate NVARCHAR(10) := "GetTodayYesterday"(1, 0);
@@ -675,7 +675,7 @@ BEGIN
         END IF;
     END IF;
 
-     IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
+     IF (:kpiType = 'UPCOMING_OD') THEN
 
         IF :rowHeader = 'Today' THEN
             SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
@@ -748,22 +748,6 @@ BEGIN
                 WHERE TO_DATE(AZOSODN00."CALDAY") BETWEEN next10DaysStartDate AND next10DaysEndDate  
             );            
         END IF;
-        -- IF :columnHeader = 'TILL_YESTERDAY' THEN
-        --     IF :rowHeader = 'OS' OR :rowHeader = 'OS>60' OR :rowHeader = 'OD' THEN
-        --         SELECT STRING_AGG(CUSTOMERS, ',') INTO CUSTOMER_CODES FROM (
-        --           SELECT DISTINCT SCUSTOMER."SID" AS "CUSTOMERS" FROM "/BIC/AZOSODN00" AZOSODN00
-        --           JOIN "/BI0/SSALES_GRP" SSALES_GRP ON AZOSODN00."SALES_GRP" = SSALES_GRP.SALES_GRP 
-        --           AND SSALES_GRP.SALES_GRP IN (
-        --           SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
-        --           )
-        --           JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = AZOSODN00."CUSTOMER" 
-        --           WHERE TO_DATE("CALDAY") BETWEEN monthCMStartDate AND monthCMEndDate
-        --           ); 
-        --     END IF;   
-            
-        -- END IF;
-        
-
     END IF;
 
     IF :kpiType = 'OSOD' THEN
@@ -787,8 +771,7 @@ BEGIN
     	CUSTOMER_CODES := '';
     END IF;
 
-    -- IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
-     IF (:kpiType = 'UPCOMING_OD') THEN
+    IF (:kpiType = 'UPCOMING_OD') OR (:kpiType = 'OSOD') THEN
       -- Main SQL string
       SQL_STR := 'SELECT TCUST."CUSTOMER" AS "CUSTOMER_CODE", TCUST."TXTMD" AS "CUSTOMER_NAME", '
     || '(SELECT "OSKPIHelper"(''' || salesGroup || ''', ''' || yesterdayDate || ''', ''' || yesterdayDate || ''', TCUST."CUSTOMER", TCUST."TXTMD", ''OS-TILL-YESTERDAY'') FROM "DUMMY") "OS", '
