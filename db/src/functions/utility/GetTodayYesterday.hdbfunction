@@ -12,7 +12,7 @@ BEGIN
             -- result := '20210929';
         ELSE
             result := TO_NVARCHAR(CURRENT_DATE, 'YYYYMMDD');
-            -- result := '20210930';
+            -- result := '20240912';
         END IF;  
     ELSE
         IF isYesterday = 1 THEN

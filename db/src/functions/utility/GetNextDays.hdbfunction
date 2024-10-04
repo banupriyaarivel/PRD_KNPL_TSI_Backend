@@ -68,6 +68,46 @@
 -- END IF;
 -- END;
 
+-- --  Hard coded for testing
+
+-- FUNCTION "GetNextDays"(isStartDate INTEGER, kpiType NVARCHAR(20))
+-- RETURNS result NVARCHAR(10)
+-- LANGUAGE SQLSCRIPT
+-- SQL SECURITY INVOKER AS
+-- BEGIN
+
+--   IF kpiType = 'Tomorrow' THEN
+--     IF isStartDate = 1 THEN
+--       result := '20240912'; -- Hardcoded start date for 'Tomorrow'
+--     ELSE
+--       result := '20240913'; -- Hardcoded end date for 'Tomorrow'
+--     END IF;
+--   ELSEIF kpiType = 'Next3Days' THEN
+--     IF isStartDate = 1 THEN
+--       result := '20240912'; -- Hardcoded start date for 'Next3Days'
+--     ELSE
+--       result := '20240915'; -- Hardcoded end date for 'Next3Days'
+--     END IF;
+--   ELSEIF kpiType = 'Next5Days' THEN
+--     IF isStartDate = 1 THEN
+--       result := '20240912'; -- Hardcoded start date for 'Next5Days'
+--     ELSE
+--       result := '20240917'; -- Hardcoded end date for 'Next5Days'
+--     END IF;
+--   ELSEIF kpiType = 'Next10Days' THEN
+--     IF isStartDate = 1 THEN
+--       result := '20240912'; -- Hardcoded start date for 'Next10Days'
+--     ELSE
+--       result := '20240922'; -- Hardcoded end date for 'Next10Days'
+--     END IF;
+--   ELSE
+--     result := '00000000'; -- Default or error case (unknown kpiType)
+--   END IF;
+
+-- END;
+
+-- Original code
+
 FUNCTION "GetNextDays"(isStartDate INTEGER, kpiType NVARCHAR(20))
 RETURNS result NVARCHAR(10)
 LANGUAGE SQLSCRIPT
@@ -134,10 +174,10 @@ BEGIN
 
   IF isStartDate = 1 THEN
     result := (YEAR(startDateVal)) || startDateMonth || startDateDay;
-    -- result := '20210926';
+    -- result := '20240912';
   ELSE
     result := (YEAR(endDateVal)) || endDateMonth || endDateDay;
-    -- result := '20210930';
+    -- result := '20240917';
   END IF;
 
 END;
