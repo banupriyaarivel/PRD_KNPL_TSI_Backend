@@ -71,7 +71,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4004/v2/tsi/getUserProfile?email='suraj.galande@extentia.com'&appVersion='2.1'
+GET http://localhost:4004/v2/tsi/getUserProfile?email='jayakrishanans@nerolac.com'&appVersion='2.3'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -230,7 +230,7 @@ get http://localhost:4004/tsi/
 
 ###
 
-GET http://localhost:4004/v2/tsi/getSalesValueKPIs?salesGroup='068'&customerCode=''&customerName=''} HTTP/1.1
+GET http://localhost:4004/v2/tsi/getBelowThresholdKPIs?salesGroup='123'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
