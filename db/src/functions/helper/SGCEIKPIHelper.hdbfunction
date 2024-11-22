@@ -13,15 +13,33 @@ BEGIN
     IF customerCode IS NULL THEN
         SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX"), 1, 1) INTO result
         FROM "/BIC/ADS_EFIND00" ADS_EFIND00
-        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+        AND SSALES_GRP.SALES_GRP IN (
             SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
         )
         WHERE "CALMONTH" BETWEEN startDate AND endDate
         AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X';
+
+        -- SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX"), 1, 1) INTO result
+        -- FROM "/BIC/ADS_EFIND00" ADS_EFIND00
+        -- -- JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+        -- -- -- AND SSALES_GRP.SALES_GRP IN (
+        -- -- --     SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        -- -- -- )
+        -- -- JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP  
+        -- -- AND PCUSTOMER."SALES_GRP" IN (
+        -- --     SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        -- -- )
+        -- WHERE "CALMONTH" BETWEEN startDate AND endDate
+        -- AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X'
+        -- and ADS_EFIND00."SALES_GRP" IN (
+        --     SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        -- )
     ELSE
         SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX"), 1, 1) INTO result
         FROM "/BIC/ADS_EFIND00" ADS_EFIND00
-        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP AND SSALES_GRP.SALES_GRP IN (
+        JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP
+        AND SSALES_GRP.SALES_GRP IN (
             SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
         )
         JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ADS_EFIND00."CUSTOMER" 
@@ -30,5 +48,23 @@ BEGIN
         )
         WHERE "CALMONTH" BETWEEN startDate AND endDate
         AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X';
+
+        -- SELECT TO_DECIMAL(SUM("/BIC/CK_EFINDX"), 1, 1) INTO result
+        -- FROM "/BIC/ADS_EFIND00" ADS_EFIND00
+        -- JOIN "/BI0/SSALES_GRP" SSALES_GRP ON ADS_EFIND00."SALES_GRP" = SSALES_GRP.SALES_GRP 
+        -- -- AND SSALES_GRP.SALES_GRP IN (
+        -- --     SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        -- -- )
+        -- JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."SALES_GRP" = SSALES_GRP.SALES_GRP  
+        -- AND PCUSTOMER."SALES_GRP" IN (
+        --     SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
+        -- )
+        -- JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."CUSTOMER" = ADS_EFIND00."CUSTOMER" 
+        -- AND SCUSTOMER."CUSTOMER" = PCUSTOMER."CUSTOMER"
+        -- AND SCUSTOMER."CUSTOMER" IN (
+        --     SELECT "RESULT" FROM "SplitCommaString"(:customerCode)
+        -- )
+        -- WHERE "CALMONTH" BETWEEN startDate AND endDate
+        -- AND ADS_EFIND00."/BIC/CI_SGRIND" = 'X';
     END IF;
 END;

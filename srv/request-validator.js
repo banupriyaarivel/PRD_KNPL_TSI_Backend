@@ -10,14 +10,14 @@ async function requestValidator(req) {
     console.log('reqObj===', reqObj);
     console.log('SSO User===', userInfo);
     if(reqObj && reqObj.salesGroup) {
-     const response = await getUserInfoByAPIAccess(userInfo.id);
+      const response = await getUserInfoByAPIAccess(userInfo.id);
     // code for debug locally
         //  let response = {
         //     "totalResults" : 1 ,
         //     "resources" : [
         //         {
         //             "emails" :  [ {
-        //                 values : "suraj.galande@extentia.com"
+        //                 values : "jagjotsinghbakshi@nerolac.com"
         //             }  ] 
         //         }
         //     ]

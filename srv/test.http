@@ -7,7 +7,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4004/v2/tsi/getCustomerValueKPIs?salesGroup='314'&customerCode=''&customerName=''} HTTP/1.1
+GET http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='042'&kpiType='ACTIVE_DEALER'&columnHeader='PARTICIPATED'&rowHeader='Today'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -71,7 +71,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4004/v2/tsi/getUserProfile?email='jayakrishanans@nerolac.com'&appVersion='2.3'
+GET http://localhost:4004/v2/tsi/getUserProfile?email='jagjotsinghbakshi@nerolac.com'&appVersion='2.4'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -105,7 +105,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsImprdSI6Imh0dHBzOi8va25wbC1xYXMtcHJvam
 Content-Type: application/json 
 ###
  
-POST http://localhost:4004/v2/tsi/getCustomerODHLKPIs?salesGroup='515,S53,518,541,402,D09,356,321,253,493,252,623,366,073,281,069,,320,401,556,455,189,188,330,265,354,557,254,529,075,532,545,551,419,266,322,T03,420,070,415,558,479,576,068,072,544,314'&kpiType='UPCOMING_OD'&columnHeader='CY'&rowHeader='Today'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
+POST http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='042'&kpiType='ACTIVE_DEALER'&columnHeader='PARTICIPATED'&rowHeader='LY Full'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=100&skipRec=0
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -229,7 +229,7 @@ get http://localhost:4004/tsi/
 
 
 ###
-
+ 
 GET http://localhost:4004/v2/tsi/getBelowThresholdKPIs?salesGroup='123'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json

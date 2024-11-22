@@ -10,8 +10,8 @@ BEGIN
     DECLARE mtdEndDate NVARCHAR(10) := "GetMTD"(1, 0);
     DECLARE ytdStartDate NVARCHAR(10) := "GetYTD"(1, 1);
     DECLARE ytdEndDate NVARCHAR(10) := "GetYTD"(1, 0);
-
-    SELECT 
+    
+    SELECT    
         (
             SELECT "NotVisitedKPIHelper"(
                 salesGroup,
