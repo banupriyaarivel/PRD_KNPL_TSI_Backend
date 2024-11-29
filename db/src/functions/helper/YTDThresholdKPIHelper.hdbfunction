@@ -62,7 +62,7 @@ BEGIN
             SELECT PCUSTOMER."/BIC/CI_PRNCUS" as SID_0CUSTOMER, SUM("/BIC/CI_NETVAL") as VAL
             FROM "/BI0/PCUSTOMER" PCUSTOMER 
             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-            AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+            AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
             AND PCUSTOMER."SALES_GRP" IN (
                 SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
             )
@@ -75,7 +75,7 @@ BEGIN
                     SELECT  PCUSTOMER1."/BIC/CI_PRNCUS" as SID_0CUSTOMER , SUM("/BIC/CI_NETVAL") as VAL
                     FROM "/BI0/PCUSTOMER" PCUSTOMER1
                     JOIN "/BI0/SCUSTOMER" SCUSTOMER1 ON PCUSTOMER1."CUSTOMER" = SCUSTOMER1."CUSTOMER" 
-                    AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                    AND PCUSTOMER1."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     AND PCUSTOMER1."SALES_GRP" IN (
                         SELECT "RESULT" FROM "SplitCommaString"(:salesGroup)
                     )

@@ -7,7 +7,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='042'&kpiType='ACTIVE_DEALER'&columnHeader='PARTICIPATED'&rowHeader='Today'&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
+POST  http://localhost:4004/v2/tsi/getCustomerHLKPIs?salesGroup='695'&kpiType='OVERALL_VISIT'&rowHeader=''&townName=''&customerCode=''&customerName=''&productCategory=null&productGroup=null&sortOrder='ASC'&sortColumn='CUSTOMER_NAME'&topRec=10&skipRec=0
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -71,7 +71,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4004/v2/tsi/getUserProfile?email='jagjotsinghbakshi@nerolac.com'&appVersion='2.4'
+GET http://localhost:4004/v2/tsi/getUserProfile?email='sumitnarang@nerolac.com'&appVersion='2.4'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -230,7 +230,7 @@ get http://localhost:4004/tsi/
 
 ###
  
-GET http://localhost:4004/v2/tsi/getBelowThresholdKPIs?salesGroup='123'
+GET http://localhost:4004/v2/tsi/getBelowThresholdKPIs?salesGroup='209'
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 

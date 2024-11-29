@@ -31,7 +31,7 @@ BEGIN
     SELECT 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-                SELECT  PCUSTOMER.CUSTOMER as customer
+                SELECT PCUSTOMER."/BIC/CI_PRNCUS" as customer
                 FROM "/BIC/FCC_NSALE" FCC_NSALE
                 JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
                 -- AND SSALES_GRP.SALES_GRP IN (
@@ -39,14 +39,14 @@ BEGIN
                 -- ) 
                 JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
                 JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
                 WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
                 AND FCC_NSALE."SID_0FISCVARNT" IN (9) 
                 AND PCUSTOMER."CUST_CLASS" IN (15, 16)
                 AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                 AND SID_0COMP_CODE IN (2)
-                GROUP BY PCUSTOMER.CUSTOMER 
+                GROUP BY PCUSTOMER."/BIC/CI_PRNCUS"
                 ) 
         ) "Total-CCD",
 
@@ -67,7 +67,7 @@ BEGIN
 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-                SELECT  PCUSTOMER.CUSTOMER as customer, SUM("/BIC/CI_NETVAL") as netvalue 
+                SELECT PCUSTOMER."/BIC/CI_PRNCUS" as customer, SUM("/BIC/CI_NETVAL") as netvalue 
                 FROM "/BIC/FCC_NSALE" FCC_NSALE
                 JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
                 -- AND SSALES_GRP.SALES_GRP IN (
@@ -75,7 +75,7 @@ BEGIN
                 -- ) 
                 JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
                 JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     -- AND "/BIC/CI_NETVAL" >= 0
                     AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
                 WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
@@ -84,7 +84,7 @@ BEGIN
                 AND PCUSTOMER."CUST_CLASS" IN (15, 16)
                 AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                 AND SID_0COMP_CODE IN (2)
-                GROUP BY PCUSTOMER.CUSTOMER 
+                GROUP BY PCUSTOMER."/BIC/CI_PRNCUS"
                 ) WHERE netvalue > 0
         ) "Billed-Today",
 
@@ -105,7 +105,7 @@ BEGIN
 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-            SELECT  PCUSTOMER.CUSTOMER as customer, SUM("/BIC/CI_NETVAL") as netvalue 
+            SELECT  PCUSTOMER."/BIC/CI_PRNCUS" as customer, SUM("/BIC/CI_NETVAL") as netvalue 
             FROM "/BIC/FCC_NSALE" FCC_NSALE
             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
             -- AND SSALES_GRP.SALES_GRP IN (
@@ -113,7 +113,7 @@ BEGIN
             -- ) 
             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
             JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                 -- AND "/BIC/CI_NETVAL" >= 0
                 AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
             WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
@@ -122,7 +122,7 @@ BEGIN
             AND PCUSTOMER."CUST_CLASS" IN (15, 16)
             AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
             AND SID_0COMP_CODE IN (2)
-            GROUP BY PCUSTOMER.CUSTOMER 
+            GROUP BY PCUSTOMER."/BIC/CI_PRNCUS"
             ) WHERE netvalue > 0
         ) "Billed-Yesterday",
 
@@ -143,7 +143,7 @@ BEGIN
 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-            SELECT  PCUSTOMER.CUSTOMER as customer, SUM("/BIC/CI_NETVAL") as netvalue 
+            SELECT PCUSTOMER."/BIC/CI_PRNCUS" as customer, SUM("/BIC/CI_NETVAL") as netvalue 
             FROM "/BIC/FCC_NSALE" FCC_NSALE
             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
             -- AND SSALES_GRP.SALES_GRP IN (
@@ -151,7 +151,7 @@ BEGIN
             -- ) 
             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
             JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                 -- AND "/BIC/CI_NETVAL" >= 0
                 AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
             WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
@@ -160,7 +160,7 @@ BEGIN
             AND PCUSTOMER."CUST_CLASS" IN (15, 16)
             AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
             AND SID_0COMP_CODE IN (2)
-            GROUP BY PCUSTOMER.CUSTOMER 
+            GROUP BY PCUSTOMER."/BIC/CI_PRNCUS"
             ) WHERE netvalue > 0
         ) "Billed-MTD*",
 
@@ -181,7 +181,7 @@ BEGIN
 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-            SELECT  PCUSTOMER.CUSTOMER as customer, SUM("/BIC/CI_NETVAL") as netvalue 
+            SELECT PCUSTOMER."/BIC/CI_PRNCUS" as customer, SUM("/BIC/CI_NETVAL") as netvalue 
             FROM "/BIC/FCC_NSALE" FCC_NSALE
             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
             -- AND SSALES_GRP.SALES_GRP IN (
@@ -189,7 +189,7 @@ BEGIN
             -- ) 
             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
             JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                 -- AND "/BIC/CI_NETVAL" >= 0
                 AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
             WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
@@ -198,7 +198,7 @@ BEGIN
             AND PCUSTOMER."CUST_CLASS" IN (15, 16)
             AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
             AND SID_0COMP_CODE IN (2)
-            GROUP BY PCUSTOMER.CUSTOMER 
+            GROUP BY PCUSTOMER."/BIC/CI_PRNCUS"
             ) WHERE netvalue > 0
         ) "Billed-MTD",
 
@@ -219,7 +219,7 @@ BEGIN
 
         (
             SELECT COUNT(DISTINCT customer ) FROM(
-            SELECT  PCUSTOMER.CUSTOMER as customer, SUM("/BIC/CI_NETVAL") as netvalue 
+            SELECT  PCUSTOMER."/BIC/CI_PRNCUS" as customer, SUM("/BIC/CI_NETVAL") as netvalue 
             FROM "/BIC/FCC_NSALE" FCC_NSALE
             JOIN "/BI0/SSALES_GRP" SSALES_GRP ON FCC_NSALE."SID_0SALES_GRP" = SSALES_GRP.SID 
             -- AND SSALES_GRP.SALES_GRP IN (
@@ -227,7 +227,7 @@ BEGIN
             -- ) 
             JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
             JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
-                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008') 
+                AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                 -- AND "/BIC/CI_NETVAL" >= 0
                 AND PCUSTOMER."SALES_GRP"  IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
             WHERE PCUSTOMER."/BIC/IO_DATE" BETWEEN ytdStartDate AND ytdEndDate
@@ -236,7 +236,7 @@ BEGIN
             AND PCUSTOMER."CUST_CLASS" IN (15, 16)
             AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
             AND SID_0COMP_CODE IN (2)
-            GROUP BY PCUSTOMER.CUSTOMER 
+            GROUP BY PCUSTOMER."/BIC/CI_PRNCUS" 
             ) WHERE netvalue > 0
         ) "Billed-YTD"
 
