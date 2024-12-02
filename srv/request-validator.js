@@ -17,7 +17,7 @@ async function requestValidator(req) {
         //     "resources" : [
         //         {
         //             "emails" :  [ {
-        //                 values : "sumitnarang@nerolac.com"
+        //                 values : "jitender2@nerolac.com"
         //             }  ] 
         //         }
         //     ]

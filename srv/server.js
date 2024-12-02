@@ -47,8 +47,8 @@ module.exports = cds.server;
 //     app.use(proxy());
 //     app.use((req, res, next) => {
 //         req.user = {
-//             id: 'sumitnarang@nerolac.com',           
-//             name: 'sumitnarang@nerolac.com',            
+//             id: 'jitender2@nerolac.com',           
+//             name: 'jitender2@nerolac.com',            
 //             roles: ['admin', 'user']                          
 //         };
 
