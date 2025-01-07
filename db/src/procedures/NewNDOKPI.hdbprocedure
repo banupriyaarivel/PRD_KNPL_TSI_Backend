@@ -35,8 +35,9 @@ BEGIN
                     JOIN "/BI0/SCUSTOMER" SCUSTOMER ON SCUSTOMER."SID" = FCC_NSALE."SID_0CUSTOMER"
                     JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
                     AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
-                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) )
+                    INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER 
+                    WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                         AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                         AND SID_0COMP_CODE IN (2)
                 AND FCC_NSALE."SID_0FISCVARNT" IN (9) 
@@ -68,8 +69,9 @@ BEGIN
                     JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
                     AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     -- AND "/BIC/CI_NETVAL" > 0
-                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) )
+                    INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER 
+                    WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                         AND TO_DATE("SID_0CALDAY") BETWEEN todayDate AND todayDate
                         AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                         AND SID_0COMP_CODE IN (2)
@@ -102,8 +104,9 @@ BEGIN
                    JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                    -- AND "/BIC/CI_NETVAL" > 0
-                   AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                   WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                   AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) )
+                   INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER 
+                   WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                        AND TO_DATE("SID_0CALDAY") BETWEEN yesterdayDate AND yesterdayDate
                        AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                        AND SID_0COMP_CODE IN (2)
@@ -136,8 +139,9 @@ BEGIN
                     JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
                     AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     -- AND "/BIC/CI_NETVAL" > 0
-                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) )
+                    INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER 
+                    WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                         AND TO_DATE("SID_0CALDAY") BETWEEN mtdTillStartDate AND mtdTillEndDate
                         AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                         AND SID_0COMP_CODE IN (2)
@@ -171,7 +175,8 @@ BEGIN
                    AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                    -- AND "/BIC/CI_NETVAL" > 0
                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                   WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                   INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER
+                   WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                        AND TO_DATE("SID_0CALDAY") BETWEEN mtdStartDate AND mtdEndDate
                        AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                        AND SID_0COMP_CODE IN (2)
@@ -203,8 +208,9 @@ BEGIN
                     JOIN "/BI0/PCUSTOMER" PCUSTOMER ON PCUSTOMER."CUSTOMER" = SCUSTOMER."CUSTOMER" 
                     AND PCUSTOMER."ACCNT_GRP" IN ('G001', 'G007', 'G008','G011') 
                     -- AND "/BIC/CI_NETVAL" > 0
-                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) ) 
-                    WHERE PCUSTOMER."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
+                    AND PCUSTOMER."SALES_GRP" IN ( SELECT "RESULT" FROM "SplitCommaString"(:salesGroup) )
+                    INNER JOIN "/BI0/PCUSTOMER" as PARENT on PCUSTOMER."/BIC/CI_PRNCUS" = PARENT.CUSTOMER 
+                    WHERE PARENT."CREATEDON" BETWEEN ytdStartDate AND ytdEndDate
                         AND TO_DATE("SID_0CALDAY") BETWEEN ytdStartDate AND ytdEndDate
                         AND FCC_NSALE."SID_0MATL_TYPE" IN (5, 15, 91, 92, 101) 
                         AND SID_0COMP_CODE IN (2)
