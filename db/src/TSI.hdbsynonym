@@ -346,5 +346,11 @@
       "object": "MSTR_PRODUCT_SHADES",
       "schema": "SAPGNP"
     }
+  },
+  "ZEMP_MASTER_ECC": {
+    "target": {
+      "object": "ZEMP_MASTER_ECC",
+      "schema": "SAPGNP"
+    }
   }
 }
