@@ -1,21 +1,18 @@
-// url : - az8wsv0bp.accounts.ondemand.com\
-// endPoint - /scim/Users
-// 'Authorization': 'Basic QWxlcnRiYXNpc0BuZXJvbGFjLmNvbTpEaWdpdGFsQDEyMw=='
 
 // IAS Functions for create, find, update, and resetPassword
-
 const https = require('https');
 const querystring = require('querystring');
+require('dotenv').config({ path: '/home/user/projects/PRD_KNPL_TSI_Backend/.TSI-IAS.env' })
+
 
 const options = {
-  hostname: 'ay5hdx9dw.trial-accounts.ondemand.com',
-  path: `/scim/`,
+  hostname: process.env.IAS_HOST_NAME,
+  path: process.env.IAS_PATH,
   method: 'GET',
   headers: {
-    'Authorization': 'Basic MGQ3ZTM0YTQtZTk5ZS00ZDY1LThmNzQtYjBhZDZmNzZmMjJhOl1uY2VuV1JXa1J4UklXZ0FKNjZ3MWpdSkJ2aUQtS2pbQmM='
+    'Authorization': process.env.IAS_AUTHORIZATION
   }
 };
-
 
 
 function findUser(email) {
@@ -49,7 +46,7 @@ function findUser(email) {
   });
 }
 
-// findIASUser('satishsurve@nerolac.com')
+// findUser('satishsurve@nerolac.com')
 function createUser(newUser) {
   return new Promise((resolve, reject) => {
       options.method = 'POST'

@@ -263,38 +263,3 @@ CALL "TSI_HDI_TSI_DB_DEPLOYER_1"."OSODKPI"(
 	CUSTOMERCODE => ''/*<NVARCHAR(500000)>*/,
 	CUSTOMERNAME => ''/*<NVARCHAR(255)>*/
 )  
-
-
-
-###
-POST http://localhost:4004/tsi/findUser HTTP/1.1
-Content-Type: application/json
-
-{
-	"email":"nagarjunaposa9@gmail.com"
-}
-
-###
-POST http://localhost:4004/tsi/createUser HTTP/1.1
-Content-Type: application/json
-
-{
-	"familyName" : "Posa",
-	"givenName" : "Nagarjuna",
-	"email" : "nagarjunaposa10@gmail.com",
-	"phoneNumber" : "6303648942",
-	"userName" : "",
-	"active" : true,
-	"password" : "Arjun@1234"
-}
-
-
-
-###
-POST http://localhost:4004/tsi/updateUser HTTP/1.1
-Content-Type: application/json
-
-{
-  "scim_id": "6c335465-b26a-4f57-972a-0670d4572185",
-  "active": false
-}
