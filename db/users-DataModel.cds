@@ -6,8 +6,8 @@ entity USER {
         EMAIL               : String(255);
         PROFILE_IMAGE       : String(1000);
         IS_ARCHIVED         : hana.TINYINT;
-        CREATED_AT          : DateTime;
-        UPDATED_AT          : DateTime;
+        CREATED_AT          : DateTime @cds.on.insert: $now;
+        UPDATED_AT          : DateTime @cds.on.insert : $now  @cds.on.update : $now;
         APP_VERSION         : String(5);
         LAST_LOGIN_AT       : DateTime;
         EMPLOYEE_CODE       : String(20);
@@ -19,32 +19,33 @@ entity USER {
         IS_ACTIVATED        : hana.TINYINT;
 
 
-        // SALES_GROUPS        : Composition of many USER_SALES_GROUP_MAP
-        //                           on SALES_GROUPS.USER_ID = $self.ID;
+        SALES_GROUPS        : Composition of many USER_SALES_GROUP_MAP
+                                  on SALES_GROUPS.USER_ID = $self.ID;
 
-        // ROLE                : Composition of many MAP_USER_ROLE
-        //                           on ROLE.USER_ID = $self.ID;
+        ROLE                : Composition of many MAP_USER_ROLE
+                                  on ROLE.USER_ID = $self.ID;
 
-        // ASM                 : Association to many ZEMP_MASTER_ECC
-        //                           on ASM.EMAIL_ASM = $self.EMAIL;
+        RSM                 : Association to many ZEMP_MASTER_ECC
+                                  on RSM.EMAIL_DSM = $self.EMAIL;
 
-        // TSI                 : Association to many ZEMP_MASTER_ECC
-        //                           on TSI.EMAIL_TSI = $self.EMAIL;
+        ASM                 : Association to many ZEMP_MASTER_ECC
+                                  on ASM.EMAIL_ASM = $self.EMAIL;
 
-        // RSM                 : Association to many ZEMP_MASTER_ECC
-        //                           on RSM.RSMID = $self.EMPLOYEE_CODE;
+        TSI                 : Association to many ZEMP_MASTER_ECC
+                                  on TSI.EMAIL_TSI = $self.EMAIL;
 
-        // RSMDepos            : Association to many ZEMP_MASTER_ECC
-        //                           on RSMDepos.EMAIL_DSM = $self.EMAIL;
+// RSMDepos            : Association to many ZEMP_MASTER_ECC
+//                           on RSMDepos.EMAIL_DSM = $self.EMAIL;
 }
+
 @cds.persistence.exists
 entity USER_SALES_GROUP_MAP {
     key ID          : Integer;
         USER_ID     : Integer;
         SALES_GROUP : String(5);
         IS_ARCHIVED : hana.TINYINT;
-        CREATED_AT  : DateTime;
-        UPDATED_AT  : DateTime;
+        CREATED_AT          : DateTime @cds.on.insert: $now;
+        UPDATED_AT          : DateTime @cds.on.insert : $now  @cds.on.update : $now;
 
 
 }
@@ -55,9 +56,9 @@ entity MAP_USER_ROLE {
         USER_ID     : Integer;
         ROLE_ID     : Integer;
         IS_ARCHIVED : hana.TINYINT;
-        CREATED_AT  : DateTime;
+        CREATED_AT  : DateTime @cds.on.insert: $now;
         CREATED_BY  : Integer;
-        UPDATED_AT  : DateTime;
+        UPDATED_AT  : DateTime @cds.on.insert: $now @cds.on.update: $now;
         UPDATED_BY  : Integer;
 }
 

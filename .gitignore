@@ -25,3 +25,7 @@ gen/db/.env
 .env2
 .env1
 .TSI-IAS.env
+# auto generated wildcard
+.env4
+# auto generated wildcard
+.env3

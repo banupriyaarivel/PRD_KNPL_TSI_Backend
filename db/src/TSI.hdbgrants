@@ -1,14 +1,22 @@
 {
-    "knpl-tsi-access": {
-        "object_owner": {
-            "roles": [
-                "TSI::external_access"
-            ]
-        },
-        "application_user": {
-            "roles": [
-                "TSI::external_access"
-            ]
-        }
-    }
+	"knpl-tsi-access": {
+		"application_user": {
+			"global_roles": [
+				{
+					"roles": [
+						"TSI::external_access"
+					]
+				}
+			]
+		},
+		"object_owner": {
+			"global_roles": [
+				{
+					"roles": [
+						"TSI::external_access"
+					]
+				}
+			]
+		}
+	}
 }

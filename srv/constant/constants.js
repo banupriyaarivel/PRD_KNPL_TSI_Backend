@@ -137,7 +137,12 @@ exports.API_NAME = {
     // Phase 3 - DGA KPIs
     DGA_DEALER_LEAD_COUNTS_KPI: 'getDGADealerLeadCounts',
     DGA_TOTAL_MR_VALUE_KPI: 'getDGATotalMRValue',
-    DGA_TOTAL_MR_VOLUME_KPI: 'getDGATotalMRVolume'
+    DGA_TOTAL_MR_VOLUME_KPI: 'getDGATotalMRVolume',
+
+      //Sales officers Portal APIs
+      USER : 'user'
+
+
 };
 
 exports.MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];

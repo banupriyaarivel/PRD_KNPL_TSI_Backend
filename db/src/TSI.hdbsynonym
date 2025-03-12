@@ -23,6 +23,28 @@
       "schema": "KNP_PRD_PROJ_HDI_DB_1"
     }
   },
+
+
+
+
+
+  "/BIC/ACO_SCHEM00": {
+    "target": {
+      "object": "/BIC/ACO_SCHEM00",
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
+    }
+  },
+  "/BIC/ACO_FIAR00": {
+    "target": {
+      "object": "/BIC/ACO_FIAR00",
+      "schema": "KNP_PRD_PROJ_HDI_DB_1"
+    }
+  },
+
+
+
+
+
   "/BI0/F0FIAR_C03": {
     "target": {
       "object": "/BI0/F0FIAR_C03",
@@ -344,6 +366,12 @@
   "DGA_MSTR_PRODUCT_SHADES": {
     "target": {
       "object": "MSTR_PRODUCT_SHADES",
+      "schema": "SAPGNP"
+    }
+  },
+  "ZEMP_MASTER_ECC": {
+    "target": {
+      "object": "ZEMP_MASTER_ECC",
       "schema": "SAPGNP"
     }
   }

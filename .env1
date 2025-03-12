@@ -99,6 +99,46 @@
 				"syslog_drain_url": null,
 				"volume_mounts": []
 			}
+		],
+		"user-provided": [
+			{
+				"label": "user-provided",
+				"name": "knpl-tsi-access",
+				"tags": [],
+				"instance_guid": "15f3021a-791e-442a-b233-e32cd1593e9c",
+				"instance_name": "knpl-tsi-access",
+				"binding_guid": "0d37004e-b5de-4f2d-b531-093309ef09c3",
+				"binding_name": null,
+				"credentials": {
+					"password": "Password1",
+					"schema": "KNP_PRD_PROJ_HDI_DB_1",
+					"tags": [
+						"hana"
+					],
+					"user": "TSI_USER"
+				},
+				"syslog_drain_url": null,
+				"volume_mounts": []
+			},
+			{
+				"label": "user-provided",
+				"name": "knpl-tsi-dga-access",
+				"tags": [],
+				"instance_guid": "1d433576-5731-4995-a89d-4862ae4830ee",
+				"instance_name": "knpl-tsi-dga-access",
+				"binding_guid": "3e8f52b1-8669-4b83-ad7d-5a23d408e651",
+				"binding_name": null,
+				"credentials": {
+					"password": "Password1",
+					"schema": "SAPGNP",
+					"tags": [
+						"hana"
+					],
+					"user": "TSI_USER"
+				},
+				"syslog_drain_url": null,
+				"volume_mounts": []
+			}
 		]
 	}
 }

@@ -32,14 +32,18 @@ const { formatProductTotalData } = require('../utility/productTotalKPI');
 const { formatProductCategoryGroupData } = require('../utility/productFilterList');
 const { formatCustomerProductValVolData, formatCustomerProductParticipationData } = require('../utility/customerProductKPI');
 const { formatProductData } = require('../utility/productKPI');
-const { formatDate } = require('../utility/helper/formatDate'); 
+const { formatDate } = require('../utility/helper/formatDate');
 const { getUserInfoByAPIAccess } = require('../utility/getUserInfoByAPIAccess');
 const requestValidator = require('../request-validator');
 
-const pragatiService =  require('./TSI-Pragati');
+const pragatiService = require('./TSI-Pragati');
 const connectService = require('./TSI-DGA');
 const incentiveService = require('./TSI-Incentive');
 const roleService = require('./TSI-ASMRSM');
+const { createUser, findUser, updateUser } = require('./TSI-IAS')
+const { newIasUser, updateIasUser } = require('../utility/helper/iasDataFormat')
+const db = cds.connect.to('db');
+const { USER, USER_SALES_GROUP_MAP, MAP_USER_ROLE } = cds.entities
 
 module.exports = cds.service.impl(function () {
 
@@ -107,7 +111,7 @@ module.exports = cds.service.impl(function () {
     this.on(API_NAME.UPCOMINGOD_KPI, async ({ data: { salesGroup } }) => {
         try {
             const output = await getProcResult(PROCEDURES.UPCOMINGOD_KPI, [salesGroup, null, null]);
-             const out =     formatUpcomingODData(output);
+            const out = formatUpcomingODData(output);
             return out;
         } catch (error) {
             console.error(error)
@@ -275,7 +279,7 @@ module.exports = cds.service.impl(function () {
                 sortColumn && sortColumn.length ? sortColumn : null,
                 topRec, skipRec
             ]);
-             const out = formatCustomerHLODData(output);
+            const out = formatCustomerHLODData(output);
             return out;
         } catch (error) {
             console.error(error)
@@ -329,13 +333,13 @@ module.exports = cds.service.impl(function () {
             const userInfo = req?._.req?.context?.user;
             const requestedEmail = req?.data?.email || '';
             console.log('In User profile===', requestedEmail);
-            if (userInfo && userInfo.id != requestedEmail){
+            if (userInfo && userInfo.id != requestedEmail) {
                 console.log('Received SAP USER ID in SSO===', userInfo.id);
                 const response = await getUserInfoByAPIAccess(userInfo.id);
                 if (response && response.totalResults) {
                     actualEmail = response.resources[0]?.emails[0]?.value || '';
                     console.log('Actual email===', actualEmail);
-                    if (actualEmail != requestedEmail){
+                    if (actualEmail != requestedEmail) {
                         return req.reject(HTTP_CODE.UNAUTHORIZED, API_MESSAGES.UNAUTHORIZED);
                     }
                 }
@@ -348,12 +352,12 @@ module.exports = cds.service.impl(function () {
             console.log('lastName===', lastName);
 
             const appVersion = req?.data?.appVersion || '';
-            console.log(actualEmail, 
+            console.log(actualEmail,
                 appVersion,
-                firstName, 
+                firstName,
                 lastName);
             const output = await getProcResult(PROCEDURES.USER_PROFILE, [
-                actualEmail, 
+                actualEmail,
                 appVersion,
                 firstName || '',
                 lastName || ''
@@ -385,7 +389,7 @@ module.exports = cds.service.impl(function () {
                 customerCode && customerCode.length ? customerCode : null,
                 customerName && customerName.length ? customerName : null
             ]);
-             const out = formatCustomerUpcomingODData(output);
+            const out = formatCustomerUpcomingODData(output);
             return out;
         } catch (error) {
             console.error(error)
@@ -572,7 +576,7 @@ module.exports = cds.service.impl(function () {
             endDate
         }
     }) => {
-        try {          
+        try {
             const formattedStartDate = dateType === 'CUSTOM' ? formatDate(startDate) : null;
             const formattedEndDate = dateType === 'CUSTOM' ? formatDate(endDate) : null;
             const output = await getProcResult(PROCEDURES.CUSTOMER_DETAILS, [
@@ -718,14 +722,14 @@ module.exports = cds.service.impl(function () {
             return false;
         }
     });
-    
+
     // Incentives
     this.on(API_NAME.INCENTIVE_KPI, incentiveService.getIncentiveKPIs);
     this.on(API_NAME.INCENTIVE_CIRCULAR_KPI, incentiveService.getIncentiveCircularDetails);
 
     // Pragati KPIs
     this.on(
-        API_NAME.PRAGATI_INFLUENCER_LOYALTY_PARTICIPANT_KPI, 
+        API_NAME.PRAGATI_INFLUENCER_LOYALTY_PARTICIPANT_KPI,
         pragatiService.getInfluencerLoyaltyParticipantKPI
     );
     this.on(
@@ -764,11 +768,11 @@ module.exports = cds.service.impl(function () {
 
     // DGA
     this.on(
-        API_NAME.DGA_BUSINESS_GENERATION_SOURSEWISE_LEADS_KPI, 
+        API_NAME.DGA_BUSINESS_GENERATION_SOURSEWISE_LEADS_KPI,
         connectService.getInfluencerBusinessGenerationKPI
     );
     this.on(
-        API_NAME.DGA_BUSINESS_GENERATION_SUMMARY_KPI, 
+        API_NAME.DGA_BUSINESS_GENERATION_SUMMARY_KPI,
         connectService.getInfluencerBusinessGenerationSummaryKPI
     );
     this.on(API_NAME.DGA_LEADS_KPI, connectService.getInfluencerLeadsKPI);
@@ -777,11 +781,127 @@ module.exports = cds.service.impl(function () {
     // Role based support added 
     this.on(API_NAME.ASM_USER_LIST, roleService.getASMUserList);
     this.on(API_NAME.SALES_OFFICES_BY_ASM_RSM_LIST, roleService.getSalesOfficesByASMRSMList);
-    this.on(API_NAME.TSI_USERS_BY_SALES_OFFICE_LIST, roleService.getTSIUsersBySalesOfficeList);    
+    this.on(API_NAME.TSI_USERS_BY_SALES_OFFICE_LIST, roleService.getTSIUsersBySalesOfficeList);
     this.on(API_NAME.DEPOT_BY_RSM, roleService.getDepotByRSM);
 
     // Phase 3 - DGA KPIs
     this.on(API_NAME.DGA_DEALER_LEAD_COUNTS_KPI, connectService.getDGADealerLeadCounts);
     this.on(API_NAME.DGA_TOTAL_MR_VALUE_KPI, connectService.getDGATotalMRValue);
     this.on(API_NAME.DGA_TOTAL_MR_VOLUME_KPI, connectService.getDGATotalMRVolume);
+
+
+    //Sales officers Portal APIs
+
+    this.before('CREATE', API_NAME.USER, async (req) => {
+        try {
+
+            let userExistDB = await SELECT.from(USER).where({ EMAIL: req.data.EMAIL });
+            let userExistIAS = await findUser(req.data.EMAIL)
+            let userInDB = userExistDB.length > 0;
+            let userInIAS = userExistIAS.totalResults !== 0;
+
+            if (userInDB && userInIAS) {
+                let error = new Error("User email is already in use. Please enter a new email.");
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (userInIAS && !userInDB) {
+                // console.log("User exists in IAS but not in DB. Creating user in DB.");
+                let newID = await getNextNumber(USER);
+                req.ID = newID;
+                req.data.SALES_GROUPS[0].ID = newID;
+                req.data.SALES_GROUPS[0].USER_ID = newID;
+                req.data.ROLE[0].ID = newID;
+                req.data.ROLE[0].USER_ID = newID;
+                return; 
+            }
+
+            if (!userInIAS && userInDB) {
+                // console.log("User exists in DB but not in IAS. Creating user in IAS.");
+                const newUser = newIasUser(req.data)
+                let resp = await createUser(newUser);
+                if (!resp.id) {
+                    throw new Error("User creation failed.");
+                }
+                req.info("User successfully created.");
+                // return { message: "User successfully created.", userID: resp.id };
+                let error = new Error(`User successfully created in IAS with this ID ${resp.id}.`);
+                error.statusCode = 201;
+                throw error;
+                
+            }
+
+            if (!userInIAS && !userInDB) {
+                // console.log("creating new user");
+                const newUser = newIasUser(req.data)
+                let resp = await createUser(newUser);
+                if (!resp.id) {
+                    throw new Error("User creation failed.");
+                } else {
+                    let newID = await getNextNumber(USER);
+                    req.ID = newID;
+                    req.data.SALES_GROUPS[0].ID = newID;
+                    req.data.SALES_GROUPS[0].USER_ID = newID;
+                    req.data.ROLE[0].ID = newID;
+                    req.data.ROLE[0].USER_ID = newID;
+                }
+                return;
+            }
+
+
+
+
+        } catch (error) {
+            console.error("Error in user creation:", error.message);
+            throw error;
+        }
+    });
+
+
+    this.before('UPDATE', API_NAME.USER, async (req) => {
+        try {
+            let userExistDB = await SELECT.from(USER).where({ ID: req.data.ID });
+            const userExist = await findUser(req.data.EMAIL);
+            let userInIAS = userExist.totalResults !== 0;
+            let userInDB = userExistDB.length > 0;
+    
+            if (!userInDB && !userInIAS) {
+                let error = new Error("User not found.");
+                error.statusCode = 400;
+                throw error;
+            }
+    
+            // Ensure SALES_GROUPS and ROLE exist before accessing [0]
+            if (req.data.SALES_GROUPS && req.data.SALES_GROUPS.length > 0) {
+                req.data.SALES_GROUPS[0].ID = req.data.ID;
+            }
+            if (req.data.ROLE && req.data.ROLE.length > 0) {
+                req.data.ROLE[0].ID = req.data.ID;
+            }
+    
+            console.log("User exists in IAS:", userInIAS);
+    
+            if (userInIAS) {
+                // Ensure `Resources` exists before accessing `[0].id`
+                if (!userExist.Resources || userExist.Resources.length === 0) {
+                    throw new Error("User found in IAS but missing in Resources.");
+                }
+    
+                const updateData =  updateIasUser(req.data); 
+    
+                const resp = await updateUser(userExist.Resources[0].id, updateData);
+                console.log("IAS Update Response:", resp);
+            }
+        } catch (error) {
+            console.error("Error updating user:", error.message);
+            throw error; //  original error stack
+        }
+    });
+    
+
+    async function getNextNumber(entity) {
+        const result = await SELECT.one(entity).orderBy({ ID: 'desc' })
+        return result ? result.ID + 1 : 1
+    }
 })

@@ -17,10 +17,11 @@ const options = {
 
 function findUser(email) {
   return new Promise((resolve, reject) => {
+    options.method = 'GET'
     const filter = `emails.value eq "${email}"`;
     const queryParams = querystring.stringify({ filter });
     options.path = `/scim/Users?${queryParams}`
-    // console.log(options)
+    console.log(options)
     const request = https.request(options, (response) => {
       let data = '';
 
@@ -46,10 +47,11 @@ function findUser(email) {
   });
 }
 
-// findUser('satishsurve@nerolac.com')
+// findUser('nagarjunaposa9@gmail.com')
 function createUser(newUser) {
   return new Promise((resolve, reject) => {
       options.method = 'POST'
+      options.path = `/scim/Users`
       options.headers[`Content-Type`] = 'application/scim+json'
     const requestData = JSON.stringify(newUser);
 
@@ -85,7 +87,7 @@ function updateUser(id ,newData){
   options.method = 'PATCH'
   options.headers[`Content-Type`] = 'application/scim+json'
   const requestData = JSON.stringify(newData);
-
+ 
   const request = https.request(options, (response) => {
     let data = '';
 
