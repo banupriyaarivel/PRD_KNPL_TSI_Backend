@@ -38,7 +38,40 @@ function newIasUser(data){
     return newUser;
 }
 
-function updateIasUser(data){
+function updateIasUser(data, IasData){
+    // const updateData = {
+    //     "schemas": [
+    //         "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    //     ],
+    //     "Operations": [
+    //         {
+    //             "op": "replace",
+    //             "value": {
+    //                 "displayName": `${IasData.Resources[0].displayName}`,
+    //                 "active": data.IS_ACTIVATED ? true : false,
+    //                 "name": {
+    //                     "familyName": IasData.Resources[0].name.familyName,
+    //                     "givenName": IasData.Resources[0].name.givenName
+    //                 },
+    //                 "emails": [
+    //                     {
+    //                         "value": IasData.Resources[0].emails[0].value,
+    //                         "type": "work",
+    //                         "primary": true
+    //                     }
+    //                 ],
+    //                 "phoneNumbers": [
+    //                     {
+    //                         "type": "work",
+    //                         "value": data.MOBILE,
+    //                         "primary": true
+    //                     }
+    //                 ]
+    //             }
+    //         }
+    //     ]
+    // };
+
     const updateData = {
         "schemas": [
             "urn:ietf:params:scim:api:messages:2.0:PatchOp"
@@ -47,31 +80,11 @@ function updateIasUser(data){
             {
                 "op": "replace",
                 "value": {
-                    "displayName": `${data.FIRST_NAME} ${data.LAST_NAME}`,
-                    "active": data.IS_ACTIVATED ? true : false,
-                    "name": {
-                        "familyName": data.LAST_NAME,
-                        "givenName": data.FIRST_NAME
-                    },
-                    "emails": [
-                        {
-                            "value": data.EMAIL,
-                            "type": "work",
-                            "primary": true
-                        }
-                    ],
-                    "phoneNumbers": [
-                        {
-                            "type": "work",
-                            "value": data.MOBILE,
-                            "primary": true
-                        }
-                    ]
+                    "active": data.IS_ACTIVATED ? true : false ,
                 }
             }
         ]
     };
-
     return updateData
 }
 

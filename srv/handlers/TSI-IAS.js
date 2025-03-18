@@ -2,15 +2,16 @@
 // IAS Functions for create, find, update, and resetPassword
 const https = require('https');
 const querystring = require('querystring');
-require('dotenv').config({ path: '/home/user/projects/PRD_KNPL_TSI_Backend/.TSI-IAS.env' })
+// require('dotenv').config({ path: '/home/user/projects/PRD_KNPL_TSI_Backend/.TSI-IAS.env' })
 
 
 const options = {
-  hostname: process.env.IAS_HOST_NAME,
-  path: process.env.IAS_PATH,
+  hostname: 'az8wsv0bp.accounts.ondemand.com',
+  path: '/scim/',
   method: 'GET',
   headers: {
-    'Authorization': process.env.IAS_AUTHORIZATION
+    'Authorization': 'Basic QWxlcnRiYXNpc0BuZXJvbGFjLmNvbTpEaWdpdGFsQDEyMw==',
+    'Content-Type': 'application/scim+json'
   }
 };
 

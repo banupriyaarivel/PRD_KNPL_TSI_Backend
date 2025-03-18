@@ -888,7 +888,9 @@ module.exports = cds.service.impl(function () {
                     throw new Error("User found in IAS but missing in Resources.");
                 }
     
-                const updateData =  updateIasUser(req.data); 
+                const updateData =  updateIasUser(req.data,userExist); 
+
+                console.log(updateData)
     
                 const resp = await updateUser(userExist.Resources[0].id, updateData);
                 console.log("IAS Update Response:", resp);

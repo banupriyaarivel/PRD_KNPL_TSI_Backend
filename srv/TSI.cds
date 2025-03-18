@@ -1,4 +1,4 @@
-using { USER, MAP_USER_ROLE, USER_SALES_GROUP_MAP, ZEMP_MASTER_ECC } from '../db/users-DataModel';
+using { USER, ZEMP_MASTER_ECC } from '../db/users-DataModel';
 
 
  @(requires : 'authenticated-user')
@@ -6,8 +6,6 @@ using { USER, MAP_USER_ROLE, USER_SALES_GROUP_MAP, ZEMP_MASTER_ECC } from '../db
 service TSIService {
 
     entity user as projection on USER;
-    // entity userRoles as projection on MAP_USER_ROLE;
-    // entity userSalesGroup as projection on USER_SALES_GROUP_MAP;
     entity masterECC as projection on ZEMP_MASTER_ECC;
 
     define type GeneralValueType {
